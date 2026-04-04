@@ -828,19 +828,36 @@ function renderMonthly(){
       c.textContent=d;grid.appendChild(c);
     });
     for(let i=0;i<firstDay;i++)grid.appendChild(document.createElement('div'));
+    const HEAT_ORDER=['몸+돈','AI/자동화','링크닷 실험','닷슬래시 업무','휴식'];
     for(let d=1;d<=dim;d++){
       const dk=mk+'-'+String(d).padStart(2,'0');
-      const count=(S.tallies[dk]||[]).filter(h=>h).length;
-      const intensity=count===0?0:count===1?0.25:count<=3?0.5:count<=5?0.75:1;
-      const isToday=dk===TK();
-      const c=document.createElement('div');
-      c.style.cssText='border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 0;background:rgba(180,160,220,'+intensity+');'+(isToday?'outline:2px solid #c4b8e8;outline-offset:1px;':'');
-      const dn=document.createElement('div');
-      dn.style.cssText='font-size:10px;color:'+(intensity>0.6?'#5a4a7a':intensity>0?'#8a78a0':'var(--ink3)')+';';
-      dn.textContent=d;c.appendChild(dn);
-
-      if(count>0)c.title=dk+' · '+count+'번';
-      grid.appendChild(c);
+      const isTodayCell=dk===TK();
+      const dayTallies=(S.tallies[dk]||[]).filter(h=>h);
+      const projCount={};
+      dayTallies.forEach(h=>{projCount[h.proj]=(projCount[h.proj]||0)+1;});
+      const maxCount=Math.max(1,...Object.values(projCount));
+      const cellDiv=document.createElement('div');
+      cellDiv.style.cssText='border-radius:4px;overflow:hidden;display:flex;flex-direction:column;'+(isTodayCell?'outline:2px solid #c4b8e8;outline-offset:1px;':'')+'min-height:28px;position:relative;background:transparent;';
+      // 날짜 숫자
+      const dnDiv=document.createElement('div');
+      dnDiv.style.cssText='font-size:10px;color:var(--ink3);text-align:center;padding:2px 0;position:relative;z-index:1;';
+      dnDiv.textContent=d;
+      // 막대들 — 프로젝트 순서대로 세로 막대
+      const barsDiv=document.createElement('div');
+      barsDiv.style.cssText='display:flex;flex:1;width:100%;';
+      HEAT_ORDER.forEach(pname=>{
+        const cnt=projCount[pname]||0;
+        const proj=S.projects.find(x=>x.name===pname);
+        const col=proj?proj.color:'#ccc';
+        const opacity=cnt===0?0:cnt===1?0.3:cnt===2?0.55:cnt===3?0.75:0.95;
+        const bar=document.createElement('div');
+        bar.style.cssText='flex:1;background:'+(cnt>0?col:'transparent')+';opacity:'+opacity+';';
+        barsDiv.appendChild(bar);
+      });
+      cellDiv.appendChild(dnDiv);
+      cellDiv.appendChild(barsDiv);
+      if(dayTallies.length>0)cellDiv.title=dk+' · '+dayTallies.length+'번';
+      grid.appendChild(cellDiv);
     }
     heatEl.appendChild(grid);
   }
