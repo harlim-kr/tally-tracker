@@ -77,6 +77,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 .toggle-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app">
@@ -260,8 +261,35 @@ let S={
   logP:-1,
   viewMonth:''
 };
+// Supabase 초기화
+const _sb=supabase.createClient('https://ebichcryjgxrmvbolktp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViaWNoY3J5amd4cm12Ym9sa3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzQ5ODgsImV4cCI6MjA5MDg1MDk4OH0.acxYAWaNWIHvqgtQhq8z76T4v941f4zjRBg9yfs_VEc');
+let _saving=false;
+
+// localStorage 우선 로드 (빠른 초기화)
 try{const d=localStorage.getItem('tally_v6');if(d)S=Object.assign({},S,JSON.parse(d));}catch(e){}
-const sv=()=>{try{localStorage.setItem('tally_v6',JSON.stringify(S));}catch(e){}};
+
+// Supabase에서 최신 데이터 로드
+async function loadFromDB(){
+  try{
+    const {data,error}=await _sb.from('tally_data').select('data').eq('id','main').single();
+    if(error||!data)return;
+    const remote=typeof data.data==='string'?JSON.parse(data.data):data.data;
+    S=Object.assign({},S,remote);
+    localStorage.setItem('tally_v6',JSON.stringify(S));
+    renderDateStreak();renderGoals();renderLegend();renderTallies();renderTodos();renderElist();renderSleepButtons();
+  }catch(e){console.log('DB load error',e);}
+}
+
+let _saveTimer=null;
+const sv=()=>{
+  try{localStorage.setItem('tally_v6',JSON.stringify(S));}catch(e){}
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(async()=>{
+    try{
+      await _sb.from('tally_data').update({data:S,updated_at:new Date().toISOString()}).eq('id','main');
+    }catch(e){console.log('DB save error',e);}
+  },1000);
+};
 
 function goPage(p){
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('on'));
@@ -624,13 +652,26 @@ function renderWeekChart(){
     const d=new Date(k+'T12:00:00');
     const dow=dayNames[d.getDay()];
     const pts=[];let cumMins=0;
-    const sorted=[...hs].sort((a,b)=>new Date(a.time||k+'T12:00:00')-new Date(b.time||k+'T12:00:00'));
-    sorted.forEach(h=>{
-      const t=h.time?new Date(h.time):new Date(k+'T12:00:00');
-      const hf=t.getHours()+t.getMinutes()/60;
-      cumMins+=h.thick?30:20;
-      pts.push({x:Math.round(hf*10)/10,y:cumMins});
-    });
+    const withTime=hs.filter(h=>h.time);
+    const noTime=hs.filter(h=>!h.time);
+    const sorted=[...withTime].sort((a,b)=>new Date(a.time)-new Date(b.time));
+    // time 없는 것들은 그래프에서 제외 (정오 고정이 그래프 왜곡 유발)
+    // 대신 time 있는 것만 표시, noTime이 있으면 별도 표기
+    if(!sorted.length&&noTime.length){
+      // time이 하나도 없으면 9~18시 사이 균등 배분
+      noTime.forEach((h,ni)=>{
+        const hf=9+(ni/(noTime.length+1))*9;
+        cumMins+=h.thick?30:20;
+        pts.push({x:Math.round(hf*10)/10,y:cumMins});
+      });
+    } else {
+      sorted.forEach(h=>{
+        const t=new Date(h.time);
+        const hf=t.getHours()+t.getMinutes()/60;
+        cumMins+=h.thick?30:20;
+        pts.push({x:Math.round(hf*10)/10,y:cumMins});
+      });
+    }
     if(!pts.length)return;
     datasets.push({
       label:k.slice(5)+' ('+dow+')',
@@ -797,7 +838,7 @@ function renderMonthly(){
       const dn=document.createElement('div');
       dn.style.cssText='font-size:10px;color:'+(intensity>0.6?'#5a4a7a':intensity>0?'#8a78a0':'var(--ink3)')+';';
       dn.textContent=d;c.appendChild(dn);
-      if(count>0){const cn=document.createElement('div');cn.style.cssText='font-size:9px;color:'+(intensity>0.5?'#7a5a9a':'var(--ink3)')+';';cn.textContent=count;c.appendChild(cn);}
+
       if(count>0)c.title=dk+' · '+count+'번';
       grid.appendChild(c);
     }
@@ -1025,6 +1066,7 @@ if(new Date().getHours()>=18){
 S.viewMonth=MK();
 if(!S.sleep)S.sleep={};
 renderSleepButtons();
+loadFromDB();
 document.getElementById('wdisp').textContent='"'+S.words[S.wi]+'"';
 renderDateStreak();
 renderGoals();
