@@ -112,11 +112,11 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <!-- 탈리마크 -->
     <div class="card">
       <!-- 범례 + 기상/취침 -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-        <div id="proj-legend" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-        <div style="display:flex;gap:6px;">
-          <button id="btn-wake" onclick="stampSleep('wake')" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">기상</button>
-          <button id="btn-sleep" onclick="stampSleep('sleep')" style="font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">취침</button>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;">
+        <div id="proj-legend" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+          <button id="btn-wake" onclick="editSleep('wake')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">기상</button>
+          <button id="btn-sleep" onclick="editSleep('sleep')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">취침</button>
         </div>
       </div>
       <!-- 좌우 탈리 -->
@@ -164,9 +164,16 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 
   <div id="page-log" class="page">
     <div class="card" style="margin-bottom:10px;">
-      <div style="font-size:11px;color:var(--ink3);letter-spacing:0.06em;margin-bottom:10px;">일주일 작업 타임라인</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="week-day-btns"></div>
-      <div style="position:relative;height:160px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <button onclick="changeWeek(-1)" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--ink2);padding:0 4px;">‹</button>
+        <div id="week-label" style="font-size:12px;color:var(--ink2);"></div>
+        <button onclick="changeWeek(1)" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--ink2);padding:0 4px;">›</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
+        <div id="week-day-btns" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
+        <button onclick="toggleChartAll()" id="btn-chart-all" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">전체</button>
+      </div>
+      <div style="position:relative;height:180px;">
         <canvas id="week-chart"></canvas>
       </div>
     </div>
@@ -560,41 +567,101 @@ function saveWU(){
   sv();alert('하루 마무리 저장됐어.');
 }
 
+let _chartFocusDay=null;
+let _chartShowAll=true;
+let _weekOffset=0;
+function changeWeek(delta){
+  _weekOffset+=delta;
+  if(_weekOffset>0)_weekOffset=0;
+  _chartFocusDay=null;
+  renderWeekChart();
+}
+function toggleChartAll(){
+  _chartShowAll=!_chartShowAll;
+  _chartFocusDay=null;
+  const btn=document.getElementById('btn-chart-all');
+  if(btn){
+    btn.style.background=_chartShowAll?'var(--ink3)':'transparent';
+    btn.style.color=_chartShowAll?'#fff':'var(--ink3)';
+  }
+  renderWeekChart();
+}
 function renderWeekChart(){
-  const days=['일','월','화','수','목','금','토'];
-  const colors=['#c4b8e8','#8ed4b0','#f0e8a8','#f0a8a8','#a8c8f0','#d4b8e8','#b8d4c4'];
+  const dayNames=['일','월','화','수','목','금','토'];
+  const colors=['#c4b8e8','#f0a8a8','#a8c8f0','#8ed4b0','#f0e8a8','#d4b8e8','#b8d4f0'];
   const btnEl=document.getElementById('week-day-btns');
+  const keys=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();
+    d.setDate(d.getDate()+_weekOffset-i);
+    keys.push(d.toISOString().slice(0,10));
+  }
+  // 주간 레이블
+  const wlabel=document.getElementById('week-label');
+  if(wlabel)wlabel.textContent=keys[0].slice(5)+' ~ '+keys[6].slice(5)+(_weekOffset===0?' (이번 주)':'');
   if(btnEl){
     btnEl.innerHTML='';
-    for(let i=6;i>=0;i--){
-      const d=new Date();d.setDate(d.getDate()-i);
-      const k=d.toISOString().slice(0,10);
-      const dow=days[d.getDay()];
+    keys.forEach((k,idx)=>{
+      const d=new Date(k+'T12:00:00');
+      const dow=dayNames[d.getDay()];
       const btn=document.createElement('button');
-      btn.style.cssText='font-size:11px;padding:3px 8px;border-radius:99px;border:1px solid '+colors[6-i]+';background:transparent;color:var(--ink3);cursor:pointer;font-family:inherit;';
-      btn.textContent=dow+(i===0?' (오늘)':'');
+      const isActive=_chartFocusDay===k;
+      btn.style.cssText='font-size:11px;padding:3px 8px;border-radius:99px;border:1.5px solid '+colors[idx]+';cursor:pointer;font-family:inherit;transition:all 0.1s;background:'+(isActive?colors[idx]:'transparent')+';color:'+(isActive?'#fff':'var(--ink3)')+';';
+      btn.textContent=dow+(idx===6?' (오늘)':'');
+      btn.onclick=()=>{_chartFocusDay=isActive?null:k;renderWeekChart();};
       btnEl.appendChild(btn);
-    }
+    });
   }
   const canvas=document.getElementById('week-chart');
   if(!canvas)return;
-  if(canvas._chartInstance)canvas._chartInstance.destroy();
+  if(canvas._chartInstance){canvas._chartInstance.destroy();canvas._chartInstance=null;}
   const datasets=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    const k=d.toISOString().slice(0,10);
-    const hs=(S.tallies[k]||[]).filter(h=>h&&h.time);
-    if(!hs.length)continue;
-    const dow=days[d.getDay()];
+  const annotations=[];
+  keys.forEach((k,idx)=>{
+    const hs=(S.tallies[k]||[]).filter(h=>h);
+    const isFaded=_chartFocusDay?_chartFocusDay!==k:false;
+    if(!hs.length&&!(_chartFocusDay===k))return;
+    const d=new Date(k+'T12:00:00');
+    const dow=dayNames[d.getDay()];
     const pts=[];let cumMins=0;
-    const sorted=[...hs].sort((a,b)=>new Date(a.time)-new Date(b.time));
+    const sorted=[...hs].sort((a,b)=>new Date(a.time||k+'T12:00:00')-new Date(b.time||k+'T12:00:00'));
     sorted.forEach(h=>{
-      const t=new Date(h.time);
-      const hourFrac=t.getHours()+t.getMinutes()/60;
+      const t=h.time?new Date(h.time):new Date(k+'T12:00:00');
+      const hf=t.getHours()+t.getMinutes()/60;
       cumMins+=h.thick?30:20;
-      pts.push({x:hourFrac,y:cumMins});
+      pts.push({x:Math.round(hf*10)/10,y:cumMins});
     });
-    datasets.push({label:k.slice(5)+' ('+dow+')',data:pts,borderColor:colors[6-i],backgroundColor:'transparent',borderWidth:1.5,pointRadius:3,tension:0.3});
+    if(!pts.length)return;
+    datasets.push({
+      label:k.slice(5)+' ('+dow+')',
+      data:pts,
+      borderColor:colors[idx],
+      backgroundColor:'transparent',
+      borderWidth:isFaded?1:2,
+      pointRadius:isFaded?1:3,
+      tension:0.3,
+      borderDash:isFaded?[3,3]:[],
+      opacity:isFaded?0.3:1
+    });
+    // 기상/취침 — 선 시작/끝에 마커 추가
+    const sl=S.sleep&&S.sleep[k]?S.sleep[k]:{};
+    if(sl.wake&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
+      const t=new Date(sl.wake);
+      const hf=Math.round((t.getHours()+t.getMinutes()/60)*10)/10;
+      pts.unshift({x:hf,y:0});
+    }
+    if(sl.sleep&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
+      const t=new Date(sl.sleep);
+      const hf=Math.round((t.getHours()+t.getMinutes()/60)*10)/10;
+      pts.push({x:hf,y:pts[pts.length-1].y});
+    }
+  });
+  if(!datasets.length){
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#a8a09c';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('탈리마크를 찍으면 여기에 그래프가 나타나요',canvas.width/2,80);
+    return;
   }
   const ctx=canvas.getContext('2d');
   canvas._chartInstance=new Chart(ctx,{
@@ -602,10 +669,14 @@ function renderWeekChart(){
     data:{datasets},
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:true,labels:{font:{size:10},boxWidth:12,padding:8}}},
+      interaction:{mode:'nearest',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:item=>item.dataset.label+': '+item.parsed.y+'분'}}
+      },
       scales:{
-        x:{type:'linear',min:0,max:24,ticks:{stepSize:3,callback:v=>v+'시'},grid:{color:'rgba(0,0,0,0.05)'}},
-        y:{beginAtZero:true,ticks:{callback:v=>v+'분'},grid:{color:'rgba(0,0,0,0.05)'}}
+        x:{type:'linear',min:0,max:24,ticks:{stepSize:3,callback:v=>v+'시',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+        y:{beginAtZero:true,ticks:{callback:v=>v+'분',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}
       }
     }
   });
@@ -627,7 +698,7 @@ function renderLog(){
     const hs=(S.tallies[day]||[]).filter(h=>h&&(S.logP===-1||(S.projects[S.logP]&&S.projects[S.logP].name===h.proj)));
     if(!hs.length)return;any=true;
     const card=document.createElement('div');card.className='log-card';
-    const dateEl=document.createElement('div');dateEl.className='log-date';dateEl.textContent=day;
+    const dateEl=document.createElement('div');dateEl.className='log-date';dateEl.style.marginBottom='0';dateEl.textContent=day;
     const marks=document.createElement('div');marks.className='log-marks';
     const ng=Math.ceil(hs.length/5);
     for(let g=0;g<ng;g++){
@@ -666,7 +737,17 @@ function renderLog(){
     }
     const row2=document.createElement('div');row2.style.cssText='display:flex;gap:12px;';
     row2.appendChild(marks);row2.appendChild(infoCol);
-    card.appendChild(dateEl);card.appendChild(row2);
+    // 날짜 헤더에 삭제 버튼
+    const dateRow=document.createElement('div');
+    dateRow.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;';
+    const delBtn=document.createElement('button');
+    delBtn.style.cssText='font-size:11px;color:var(--ink3);border:none;background:none;cursor:pointer;padding:0;';
+    delBtn.textContent='삭제';
+    (function(d){delBtn.onclick=()=>{
+      delete S.tallies[d];sv();renderLog();
+    };})(day);
+    dateRow.appendChild(dateEl);dateRow.appendChild(delBtn);
+    card.appendChild(dateRow);card.appendChild(row2);
     if(wu&&(wu.learned||wu.proud||wu.tmr)){
       const wuDiv=document.createElement('div');wuDiv.className='log-wu';
       if(wu.learned)wuDiv.innerHTML+='배운 것: '+wu.learned+'<br>';
@@ -809,31 +890,73 @@ function stampSleep(type){
   S.sleep[k][type]=new Date().toISOString();
   sv();renderSleepButtons();
 }
+function editSleep(type){
+  const k=TK();
+  if(!S.sleep)S.sleep={};
+  if(!S.sleep[k])S.sleep[k]={};
+  const existing=S.sleep[k][type];
+  if(!existing){
+    // 첫 클릭 — 현재 시각 바로 기록
+    S.sleep[k][type]=new Date().toISOString();
+    sv();renderSleepButtons();
+    return;
+  }
+  // 이미 찍혔으면 — time input으로 수정
+  const btnId=type==='wake'?'btn-wake':'btn-sleep';
+  const btn=document.getElementById(btnId);
+  if(!btn)return;
+  const t=new Date(existing);
+  const defaultVal=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  const inp=document.createElement('input');
+  inp.type='time';
+  inp.value=defaultVal;
+  inp.style.cssText='font-size:11px;padding:3px 6px;border-radius:99px;border:1.5px solid '+(type==='wake'?'#8ed4b0':'#a8c8f0')+';background:'+(type==='wake'?'#8ed4b0':'#a8c8f0')+';color:#fff;font-family:inherit;width:88px;';
+  inp.onchange=()=>{
+    const val=inp.value;if(!val)return;
+    const [h,m]=val.split(':').map(Number);
+    const d=new Date();d.setHours(h,m,0,0);
+    S.sleep[k][type]=d.toISOString();
+    sv();
+    if(inp.parentNode)inp.parentNode.replaceChild(btn,inp);
+    renderSleepButtons();
+  };
+  inp.onblur=()=>{setTimeout(()=>{if(inp.parentNode)inp.parentNode.replaceChild(btn,inp);renderSleepButtons();},150);};
+  btn.parentNode.replaceChild(inp,btn);
+  inp.focus();
+}
 function renderSleepButtons(){
   const k=TK();
   const data=S.sleep&&S.sleep[k]?S.sleep[k]:{};
-  const wake=document.getElementById('btn-wake');
-  const sleep=document.getElementById('btn-sleep');
-  if(wake){
+  const wakeEl=document.getElementById('btn-wake');
+  const sleepEl=document.getElementById('btn-sleep');
+  if(wakeEl){
     if(data.wake){
       const t=new Date(data.wake);
       const h=t.getHours(),m=String(t.getMinutes()).padStart(2,'0');
-      wake.textContent='기상 '+h+':'+m;
-      wake.style.cssText='font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid #8ed4b0;background:#8ed4b0;cursor:pointer;color:#fff;font-family:inherit;';
+      wakeEl.textContent='기상 '+h+':'+m;
+      wakeEl.style.background='#8ed4b0';
+      wakeEl.style.borderColor='#8ed4b0';
+      wakeEl.style.color='#fff';
     } else {
-      wake.textContent='기상';
-      wake.style.cssText='font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;';
+      wakeEl.textContent='기상';
+      wakeEl.style.background='transparent';
+      wakeEl.style.borderColor='var(--bd2)';
+      wakeEl.style.color='var(--ink3)';
     }
   }
-  if(sleep){
+  if(sleepEl){
     if(data.sleep){
       const t=new Date(data.sleep);
       const h=t.getHours(),m=String(t.getMinutes()).padStart(2,'0');
-      sleep.textContent='취침 '+h+':'+m;
-      sleep.style.cssText='font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid #a8c8f0;background:#a8c8f0;cursor:pointer;color:#fff;font-family:inherit;';
+      sleepEl.textContent='취침 '+h+':'+m;
+      sleepEl.style.background='#a8c8f0';
+      sleepEl.style.borderColor='#a8c8f0';
+      sleepEl.style.color='#fff';
     } else {
-      sleep.textContent='취침';
-      sleep.style.cssText='font-size:11px;padding:4px 10px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;';
+      sleepEl.textContent='취침';
+      sleepEl.style.background='transparent';
+      sleepEl.style.borderColor='var(--bd2)';
+      sleepEl.style.color='var(--ink3)';
     }
   }
 }
