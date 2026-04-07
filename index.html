@@ -235,8 +235,16 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <div id="tip" class="tip" style="display:none;"></div>
 
 <script>
-const TK=()=>new Date().toISOString().slice(0,10);
-const MK=()=>new Date().toISOString().slice(0,7);
+function kstNow(){
+  const d=new Date();
+  // KST = UTC+9, 하루 기준은 새벽 4시 (오전 4시 이전은 전날로 처리)
+  const kst=new Date(d.getTime()+9*60*60*1000);
+  // 새벽 4시 이전이면 전날로
+  if(kst.getUTCHours()<4) kst.setUTCDate(kst.getUTCDate()-1);
+  return kst;
+}
+const TK=()=>{const d=kstNow();return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');};
+const MK=()=>{const d=kstNow();return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');};
 const RIGHT_PROJS=['링크닷 실험','닷슬래시 업무'];
 const isRight=n=>RIGHT_PROJS.includes(n);
 
@@ -687,13 +695,15 @@ function renderWeekChart(){
     // 기상/취침 — 선 시작/끝에 마커 추가
     const sl=S.sleep&&S.sleep[k]?S.sleep[k]:{};
     if(sl.wake&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
-      const t=new Date(sl.wake);
-      const hf=Math.round((t.getHours()+t.getMinutes()/60)*10)/10;
+      const t=new Date(sl.wake);const tKST=new Date(t.getTime()+9*60*60*1000);
+      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
+      if(hf<4)hf+=24;
       pts.unshift({x:hf,y:0});
     }
     if(sl.sleep&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
-      const t=new Date(sl.sleep);
-      const hf=Math.round((t.getHours()+t.getMinutes()/60)*10)/10;
+      const t=new Date(sl.sleep);const tKST=new Date(t.getTime()+9*60*60*1000);
+      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
+      if(hf<4)hf+=24;
       pts.push({x:hf,y:pts[pts.length-1].y});
     }
   });
@@ -716,7 +726,7 @@ function renderWeekChart(){
         tooltip:{callbacks:{label:item=>item.dataset.label+': '+item.parsed.y+'분'}}
       },
       scales:{
-        x:{type:'linear',min:0,max:24,ticks:{stepSize:3,callback:v=>v+'시',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
+        x:{type:'linear',min:4,max:28,ticks:{stepSize:3,callback:v=>(v>=24?v-24:v)+'시',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}},
         y:{beginAtZero:true,ticks:{callback:v=>v+'분',font:{size:10}},grid:{color:'rgba(0,0,0,0.04)'}}
       }
     }
@@ -963,8 +973,8 @@ function editSleep(type){
   const btnId=type==='wake'?'btn-wake':'btn-sleep';
   const btn=document.getElementById(btnId);
   if(!btn)return;
-  const t=new Date(existing);
-  const defaultVal=String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0');
+  const t=new Date(existing);const tKST=new Date(t.getTime()+9*60*60*1000);
+  const defaultVal=String(tKST.getUTCHours()).padStart(2,'0')+':'+String(tKST.getUTCMinutes()).padStart(2,'0');
   const inp=document.createElement('input');
   inp.type='time';
   inp.value=defaultVal;
@@ -990,7 +1000,8 @@ function renderSleepButtons(){
   if(wakeEl){
     if(data.wake){
       const t=new Date(data.wake);
-      const h=t.getHours(),m=String(t.getMinutes()).padStart(2,'0');
+      const kst=new Date(t.getTime()+9*60*60*1000);
+      const h=kst.getUTCHours(),m=String(kst.getUTCMinutes()).padStart(2,'0');
       wakeEl.textContent='기상 '+h+':'+m;
       wakeEl.style.background='#8ed4b0';
       wakeEl.style.borderColor='#8ed4b0';
@@ -1005,7 +1016,8 @@ function renderSleepButtons(){
   if(sleepEl){
     if(data.sleep){
       const t=new Date(data.sleep);
-      const h=t.getHours(),m=String(t.getMinutes()).padStart(2,'0');
+      const kst=new Date(t.getTime()+9*60*60*1000);
+      const h=kst.getUTCHours(),m=String(kst.getUTCMinutes()).padStart(2,'0');
       sleepEl.textContent='취침 '+h+':'+m;
       sleepEl.style.background='#a8c8f0';
       sleepEl.style.borderColor='#a8c8f0';
