@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
 <title>탈리 트래커</title>
+<script>document.addEventListener("DOMContentLoaded",()=>{const u=new URLSearchParams(window.location.search).get("user");if(u&&u!=="main")document.title="탈리 트래커 · "+u;});</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -90,6 +91,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 
   <div id="page-home" class="page on">
     <!-- 날짜/스트릭 -->
+    <div id="user-tag" style="font-size:12px;color:var(--ink3);margin-bottom:6px;text-align:center;"></div>
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
       <div id="date-display" style="font-size:13px;color:var(--ink2);"></div>
       <div id="streak-display" style="font-size:11px;color:var(--ink3);"></div>
@@ -271,6 +273,7 @@ let S={
 };
 // Supabase 초기화
 const _sb=supabase.createClient('https://ebichcryjgxrmvbolktp.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViaWNoY3J5amd4cm12Ym9sa3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzQ5ODgsImV4cCI6MjA5MDg1MDk4OH0.acxYAWaNWIHvqgtQhq8z76T4v941f4zjRBg9yfs_VEc');
+const _userId=(new URLSearchParams(window.location.search).get('user'))||'main';
 let _saving=false;
 
 // localStorage 우선 로드 (빠른 초기화)
@@ -279,7 +282,7 @@ try{const d=localStorage.getItem('tally_v6');if(d)S=Object.assign({},S,JSON.pars
 // Supabase에서 최신 데이터 로드
 async function loadFromDB(){
   try{
-    const {data,error}=await _sb.from('tally_data').select('data').eq('id','main').single();
+    const {data,error}=await _sb.from('tally_data').select('data').eq('id',_userId).single();
     if(error||!data)return;
     const remote=typeof data.data==='string'?JSON.parse(data.data):data.data;
     S=Object.assign({},S,remote);
@@ -294,7 +297,7 @@ const sv=()=>{
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(async()=>{
     try{
-      await _sb.from('tally_data').update({data:S,updated_at:new Date().toISOString()}).eq('id','main');
+      await _sb.from('tally_data').update({data:S,updated_at:new Date().toISOString()}).eq('id',_userId);
     }catch(e){console.log('DB save error',e);}
   },1000);
 };
@@ -688,7 +691,7 @@ function renderWeekChart(){
       backgroundColor:'transparent',
       borderWidth:isFaded?1:2,
       pointRadius:isFaded?1:3,
-      tension:0.3,
+      tension:0,
       borderDash:isFaded?[3,3]:[],
       opacity:isFaded?0.3:1
     });
@@ -1036,6 +1039,12 @@ function renderDateStreak(){
   if(!el||!sel)return;
   const now=new Date();
   const days=['일','월','화','수','목','금','토'];
+  // 유저 표시
+  const userTag=document.getElementById('user-tag');
+  if(userTag){
+    if(_userId==='tagoo') userTag.textContent='To tagoo 🌿 from HARLIM 🌷';
+    else userTag.style.display='none';
+  }
   el.textContent=now.getFullYear()+'.'+(now.getMonth()+1)+'.'+now.getDate()+' ('+days[now.getDay()]+')';
   let streak=0;const d=new Date();
   while(streak<365){
