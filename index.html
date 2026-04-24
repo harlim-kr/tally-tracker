@@ -92,11 +92,17 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 </head>
 <body>
 <div class="app">
-  <div class="nav">
+  <div class="nav" style="display:flex;align-items:center;">
     <button class="nb on" onclick="goPage('home')">홈</button>
     <button class="nb" onclick="goPage('log')">기록</button>
-    <button class="nb" onclick="goPage('exp')">GOGO</button>
-    <button class="nb" onclick="goPage('settings')">설정</button>
+    <button class="nb" onclick="goPage('exp')">놀이터</button>
+    <button class="nb" onclick="goPage('soul')">대화</button>
+    <button onclick="goPage('settings')" id="settings-icon-btn" style="margin-left:auto;background:none;border:none;cursor:pointer;padding:6px 10px;color:var(--ink3);display:flex;align-items:center;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
   </div>
 
   <div id="page-home" class="page on">
@@ -252,9 +258,9 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   </div>
   <div id="page-exp" class="page" style="padding:0;position:fixed;inset:0;top:45px;z-index:10;display:none;flex-direction:column;">
     <!-- 상단 컨트롤 -->
-    <div id="exp-topbar" style="padding:7px 14px;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--bd);background:var(--bg);flex-shrink:0;">
+    <div id="exp-topbar" style="padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--bd);background:var(--bg);flex-shrink:0;min-height:64px;">
       <div id="exp-energy-week" style="display:flex;gap:4px;"></div>
-      <div style="flex:1;"></div>
+      <textarea id="exp-free-memo" placeholder="자유 메모" oninput="S.expFreeMemo=this.value;sv();" style="flex:1;font-size:12px;padding:6px 10px;border:0.5px solid var(--bd2);border-radius:12px;background:var(--bg2);color:var(--ink);font-family:inherit;margin:0 10px;outline:none;resize:none;line-height:1.5;"></textarea>
       <button id="exp-ideas-btn" onclick="toggleIdeasPanel()" style="display:none;font-size:11px;padding:4px 11px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">💡 대기</button>
       <button id="exp-mode-btn" onclick="toggleExpMode()" style="font-size:11px;padding:4px 11px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">👁 보기모드</button>
     </div>
@@ -310,6 +316,114 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
         <div style="flex:1;"></div>
         <button onclick="closeGogoPopup()" style="font-size:12px;padding:7px 12px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
         <button onclick="saveGogoPopup()" style="font-size:12px;padding:7px 12px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-soul" class="page" style="position:relative;">
+    <!-- 배경 -->
+    <div style="position:fixed;inset:0;top:45px;z-index:0;pointer-events:none;overflow:hidden;background:#daeefa;">
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 700 600" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="700" height="380" fill="#daeefa"/>
+        <rect y="340" width="700" height="50" fill="#c8e4f4" opacity="0.6"/>
+        <rect y="375" width="700" height="225" fill="#cce8f8"/>
+        <line x1="0" y1="377" x2="700" y2="377" stroke="#b0d4ec" stroke-width="0.8" opacity="0.8"/>
+        <path d="M0 400 Q175 392 350 400 Q525 408 700 400" fill="none" stroke="#a8cce4" stroke-width="0.8" opacity="0.4"/>
+        <path d="M0 430 Q175 422 350 430 Q525 438 700 430" fill="none" stroke="#a8cce4" stroke-width="0.6" opacity="0.28"/>
+        <path d="M0 460 Q175 452 350 460 Q525 468 700 460" fill="none" stroke="#a8cce4" stroke-width="0.5" opacity="0.2"/>
+        <!-- 섬 (화면 2/3 아래) -->
+        <ellipse cx="350" cy="382" rx="80" ry="15" fill="#e8c87a"/>
+        <ellipse cx="350" cy="376" rx="62" ry="11" fill="#f0d48a"/>
+        <!-- 야자수 줄기 -->
+        <path d="M348 375 Q344 354 341 333 Q338 314 342 294" fill="none" stroke="#8B4513" stroke-width="5" stroke-linecap="round"/>
+        <!-- 야자수 잎 -->
+        <ellipse cx="318" cy="289" rx="26" ry="9" fill="#2e8b20" transform="rotate(-30 318 289)"/>
+        <ellipse cx="328" cy="277" rx="24" ry="8" fill="#3aa030" transform="rotate(-8 328 277)"/>
+        <ellipse cx="350" cy="274" rx="24" ry="8" fill="#2e8b20" transform="rotate(12 350 274)"/>
+        <ellipse cx="368" cy="285" rx="24" ry="8" fill="#3aa030" transform="rotate(34 368 285)"/>
+        <ellipse cx="310" cy="302" rx="20" ry="7" fill="#2e8b20" transform="rotate(-52 310 302)"/>
+        <!-- 코코넛 -->
+        <circle cx="339" cy="298" r="5" fill="#8B4513"/>
+        <circle cx="350" cy="294" r="4" fill="#A0522D"/>
+        <!-- 섬 수면 반사 -->
+        <ellipse cx="350" cy="392" rx="80" ry="7" fill="#d4b86a" opacity="0.15"/>
+      </svg>
+      <style>
+        @keyframes soulDrift1{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
+        @keyframes soulDrift2{0%,100%{transform:translateX(0)}50%{transform:translateX(-12px)}}
+        @keyframes soulDrift3{0%,100%{transform:translateX(0)}50%{transform:translateX(10px)}}
+      </style>
+      <div style="position:absolute;top:28px;left:6%;animation:soulDrift1 8s ease-in-out infinite;">
+        <svg width="140" height="44" viewBox="0 0 140 44"><ellipse cx="70" cy="28" rx="62" ry="19" fill="white" opacity="0.9"/><ellipse cx="48" cy="22" rx="38" ry="17" fill="white" opacity="0.88"/><ellipse cx="96" cy="24" rx="34" ry="15" fill="white" opacity="0.85"/><ellipse cx="70" cy="18" rx="28" ry="14" fill="white" opacity="0.9"/></svg>
+      </div>
+      <div style="position:absolute;top:48px;left:54%;animation:soulDrift2 11s ease-in-out infinite;">
+        <svg width="170" height="46" viewBox="0 0 170 46"><ellipse cx="85" cy="30" rx="76" ry="20" fill="white" opacity="0.82"/><ellipse cx="60" cy="24" rx="46" ry="18" fill="white" opacity="0.8"/><ellipse cx="116" cy="26" rx="42" ry="17" fill="white" opacity="0.78"/><ellipse cx="85" cy="20" rx="34" ry="15" fill="white" opacity="0.85"/></svg>
+      </div>
+      <div style="position:absolute;top:14px;left:36%;animation:soulDrift3 14s ease-in-out infinite;">
+        <svg width="88" height="32" viewBox="0 0 88 32"><ellipse cx="44" cy="21" rx="39" ry="14" fill="white" opacity="0.72"/><ellipse cx="30" cy="16" rx="24" ry="12" fill="white" opacity="0.7"/><ellipse cx="57" cy="17" rx="21" ry="11" fill="white" opacity="0.68"/></svg>
+      </div>
+    </div>
+    <!-- 콘텐츠 -->
+    <div style="position:relative;z-index:1;">
+    <div class="card" style="margin-bottom:12px;background:rgba(255,253,249,0.88);backdrop-filter:blur(4px);">
+      <div style="font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">🏝️ 영혼의 대화입니다</div>
+      <div style="font-size:12px;color:var(--ink3);">나 자신과의 대화를 쌓아가는 곳</div>
+    </div>
+    <!-- 질문 설정 토글 -->
+    <div class="card" style="padding:0;margin-bottom:12px;background:rgba(255,253,249,0.88);backdrop-filter:blur(4px);">
+      <button class="toggle-btn" onclick="toggleSoulQuestions()" style="padding:12px 16px;">
+        <span style="font-size:12px;color:var(--ink2);">질문 설정</span>
+        <span id="soul-q-arrow" style="font-size:11px;color:var(--ink3);">▼</span>
+      </button>
+      <div id="soul-q-body" style="display:none;padding:0 16px 16px;">
+        <div id="soul-q-list" style="margin-bottom:8px;"></div>
+        <div class="add-row">
+          <input id="soul-q-input" placeholder="새 질문 추가" style="flex:1;"/>
+          <button class="btn" onclick="addSoulQuestion()">추가</button>
+        </div>
+      </div>
+    </div>
+    <!-- 오늘의 대화 -->
+    <div class="card" style="margin-bottom:12px;background:rgba(255,253,249,0.88);backdrop-filter:blur(4px);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--ink2);font-weight:500;" id="soul-today-date"></div>
+        <button class="btn btn-acc" onclick="saveSoulEntry()" style="padding:5px 14px;">저장</button>
+      </div>
+      <div id="soul-entry-area"></div>
+    </div>
+    <!-- 지난 대화 토글 -->
+    <div class="card" style="padding:0;background:rgba(255,253,249,0.88);backdrop-filter:blur(4px);">
+      <button class="toggle-btn" onclick="toggleSoulHistory()" style="padding:12px 16px;">
+        <span style="font-size:12px;color:var(--ink2);">지난 대화</span>
+        <span id="soul-h-arrow" style="font-size:11px;color:var(--ink3);">▼</span>
+      </button>
+      <div id="soul-h-body" style="display:none;padding:0 16px 16px;"></div>
+    </div>
+  </div>
+    </div><!-- 콘텐츠 끝 -->
+  </div>
+
+  <div id="page-settings" class="page">
+    <div class="card">
+      <div class="clabel">오늘의 말</div>
+      <div id="wmgr" style="margin-bottom:10px;"></div>
+      <div class="add-row">
+        <input id="nword" placeholder="새 문장 추가"/>
+        <button class="btn" onclick="addWord()">추가</button>
+      </div>
+      <div class="divider"></div>
+      <div class="clabel">목표</div>
+      <input class="sinput" id="sg-month" placeholder="이달 목표"/>
+      <input class="sinput" id="sg-week" placeholder="이번 주 목표"/>
+      <input class="sinput" id="sg-today" placeholder="오늘 목표"/>
+      <button class="btn btn-acc" onclick="saveGoals()">저장</button>
+      <div class="divider"></div>
+      <div class="clabel">프로젝트</div>
+      <div id="pmgr" style="margin-bottom:10px;"></div>
+      <div class="add-row">
+        <input id="npname" placeholder="프로젝트 이름" style="flex:2;"/>
+        <input type="color" id="npcolor" value="#8ed4b0" style="width:36px;height:36px;border:none;border-radius:4px;padding:2px;cursor:pointer;"/>
+        <button class="btn" onclick="addProj()">추가</button>
       </div>
     </div>
   </div>
@@ -393,14 +507,17 @@ function goPage(p){
     el.classList.remove('on');
     if(el.id==='page-exp') el.style.display='none';
   });
-  document.querySelectorAll('.nb').forEach((b,i)=>{b.classList.toggle('on',['home','log','exp','settings'][i]===p);});
+  document.querySelectorAll('.nb').forEach((b,i)=>{b.classList.toggle('on',['home','log','exp','soul'][i]===p);});
+  const settingsBtn=document.getElementById('settings-icon-btn');
+  if(settingsBtn)settingsBtn.style.color=p==='settings'?'#5c4f47':'var(--ink3)';
   const pageEl=document.getElementById('page-'+p);
   if(pageEl){
     pageEl.classList.add('on');
     if(p==='exp') pageEl.style.display='flex';
   }
   if(p==='log')renderLog();
-  if(p==='exp'){renderExpEnergyWeek();expInitOutlineEvents();renderTreeVis();const gi=document.getElementById('gogo-ideas');if(gi&&S.gogoIdeas)gi.value=S.gogoIdeas;}
+  if(p==='exp'){renderExpEnergyWeek();expInitOutlineEvents();renderTreeVis();const gi=document.getElementById('gogo-ideas');if(gi&&S.gogoIdeas)gi.value=S.gogoIdeas;const fm=document.getElementById('exp-free-memo');if(fm&&S.expFreeMemo)fm.value=S.expFreeMemo;}
+  if(p==='soul')renderSoulPage();
   if(p==='settings')renderSettings();
 }
 
@@ -663,6 +780,9 @@ if(!S.expOutline)S.expOutline='';
 if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
+if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.soulQuestions)S.soulQuestions=[];
+if(!S.soulEntries)S.soulEntries={};
       S.archivedTodos.unshift({...t,archivedAt:TK()});
       S.todos.splice(i,1);sv();renderTodos();
     };
@@ -1276,6 +1396,9 @@ if(!S.expOutline)S.expOutline='';
 if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
+if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.soulQuestions)S.soulQuestions=[];
+if(!S.soulEntries)S.soulEntries={};
   if(!S.energyLog[k])S.energyLog[k]={};
   const log=S.energyLog[k];
   el.innerHTML='';
@@ -1570,6 +1693,122 @@ function toggleGogoPin(){
   sv();renderTreeVis();
 }
 
+// ===== 대화 탭 =====
+function toggleSoulQuestions(){
+  const b=document.getElementById('soul-q-body');
+  const a=document.getElementById('soul-q-arrow');
+  const open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  a.textContent=open?'▲':'▼';
+}
+function toggleSoulHistory(){
+  const b=document.getElementById('soul-h-body');
+  const a=document.getElementById('soul-h-arrow');
+  const open=b.style.display==='none';
+  b.style.display=open?'block':'none';
+  a.textContent=open?'▲':'▼';
+  if(open)renderSoulHistory();
+}
+function addSoulQuestion(){
+  const inp=document.getElementById('soul-q-input');
+  const q=inp.value.trim();
+  if(!q)return;
+  if(!S.soulQuestions)S.soulQuestions=[];
+  S.soulQuestions.push(q);
+  inp.value='';
+  sv();renderSoulQuestionList();renderSoulEntryArea();
+}
+function renderSoulQuestionList(){
+  const el=document.getElementById('soul-q-list');
+  if(!el)return;
+  if(!S.soulQuestions)S.soulQuestions=[];
+  el.innerHTML='';
+  S.soulQuestions.forEach((q,i)=>{
+    const row=document.createElement('div');
+    row.className='set-row';
+    row.innerHTML=`<span style="flex:1;font-size:13px;">${q}</span><button class="btn" onclick="delSoulQuestion(${i})">삭제</button>`;
+    el.appendChild(row);
+  });
+}
+function delSoulQuestion(i){
+  S.soulQuestions.splice(i,1);sv();renderSoulQuestionList();renderSoulEntryArea();
+}
+function renderSoulEntryArea(){
+  const el=document.getElementById('soul-entry-area');
+  if(!el)return;
+  const k=TK();
+  const existing=(S.soulEntries&&S.soulEntries[k])||{};
+  el.innerHTML='';
+  const qs=S.soulQuestions||[];
+  if(!qs.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--ink3);font-style:italic;">위에서 질문을 먼저 추가해봐</div>';
+    return;
+  }
+  qs.forEach((q,i)=>{
+    const block=document.createElement('div');
+    block.style.cssText='margin-bottom:14px;';
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:12px;color:var(--ink2);margin-bottom:4px;font-weight:500;';
+    lbl.textContent=q;
+    const ta=document.createElement('textarea');
+    ta.id='soul-ans-'+i;
+    ta.style.cssText='width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--ink);font-family:inherit;resize:none;min-height:60px;line-height:1.6;';
+    ta.placeholder='여기에 적어봐...';
+    ta.value=(existing.answers&&existing.answers[i])||'';
+    block.appendChild(lbl);block.appendChild(ta);
+    el.appendChild(block);
+  });
+}
+function saveSoulEntry(){
+  const k=TK();
+  if(!S.soulEntries)S.soulEntries={};
+  const qs=S.soulQuestions||[];
+  const answers=qs.map((_,i)=>{
+    const ta=document.getElementById('soul-ans-'+i);
+    return ta?ta.value:'';
+  });
+  S.soulEntries[k]={date:k,questions:[...qs],answers};
+  sv();
+  alert('저장됐어 🌷');
+}
+function renderSoulHistory(){
+  const el=document.getElementById('soul-h-body');
+  if(!el)return;
+  if(!S.soulEntries||!Object.keys(S.soulEntries).length){
+    el.innerHTML='<div style="font-size:13px;color:var(--ink3);font-style:italic;padding:4px 0;">아직 기록이 없어</div>';
+    return;
+  }
+  el.innerHTML='';
+  Object.keys(S.soulEntries).sort().reverse().forEach(k=>{
+    const entry=S.soulEntries[k];
+    const card=document.createElement('div');
+    card.style.cssText='border-bottom:0.5px solid var(--bd);padding:10px 0;';
+    const dateEl=document.createElement('div');
+    dateEl.style.cssText='font-size:11px;color:var(--ink3);margin-bottom:6px;';
+    dateEl.textContent=k;
+    card.appendChild(dateEl);
+    (entry.questions||[]).forEach((q,i)=>{
+      const ans=entry.answers&&entry.answers[i];
+      if(!ans)return;
+      const qEl=document.createElement('div');
+      qEl.style.cssText='font-size:12px;color:var(--ink2);font-weight:500;margin-bottom:2px;';
+      qEl.textContent=q;
+      const aEl=document.createElement('div');
+      aEl.style.cssText='font-size:13px;color:var(--ink);margin-bottom:8px;line-height:1.6;white-space:pre-wrap;';
+      aEl.textContent=ans;
+      card.appendChild(qEl);card.appendChild(aEl);
+    });
+    el.appendChild(card);
+  });
+}
+function renderSoulPage(){
+  if(!S.soulQuestions)S.soulQuestions=[];
+  if(!S.soulEntries)S.soulEntries={};
+  const dateEl=document.getElementById('soul-today-date');
+  if(dateEl)dateEl.textContent=TK()+' 오늘의 대화';
+  renderSoulQuestionList();
+  renderSoulEntryArea();
+}
 function stampSleep(type){
   const k=TK();
   if(!S.sleep)S.sleep={};
@@ -1726,6 +1965,9 @@ if(!S.expOutline)S.expOutline='';
 if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
+if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.soulQuestions)S.soulQuestions=[];
+if(!S.soulEntries)S.soulEntries={};
 // user-tag 즉시 설정
 const _utEl=document.getElementById('user-tag');
 const _utRow=document.getElementById('user-tag-row');
