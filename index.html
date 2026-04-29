@@ -97,7 +97,8 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     <button class="nb" onclick="goPage('log')">기록</button>
     <button class="nb" onclick="goPage('exp')">놀이터</button>
     <button class="nb" onclick="goPage('soul')">대화</button>
-    <button onclick="goPage('settings')" id="settings-icon-btn" style="margin-left:auto;background:none;border:none;cursor:pointer;padding:6px 10px;color:var(--ink3);display:flex;align-items:center;">
+    <div id="sync-indicator" style="font-size:10px;color:#8ed4b0;opacity:0;transition:opacity 0.3s;padding:0 4px;white-space:nowrap;">↻ 싱크</div>
+  <button onclick="goPage('settings')" id="settings-icon-btn"  style="margin-left:auto;background:none;border:none;cursor:pointer;padding:6px 10px;color:var(--ink3);display:flex;align-items:center;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
@@ -488,19 +489,50 @@ async function loadFromDB(){
     S=Object.assign({},S,remote);
     localStorage.setItem('tally_v6',JSON.stringify(S));
     renderDateStreak();renderGoals();renderLegend();renderTallies();renderTodos();renderElist();renderSleepButtons();renderExerciseBtn();renderEnergyChecks();renderEnergyChecks();
+    startRealtimeSync();
   }catch(e){console.log('DB load error',e);}
 }
 
 let _saveTimer=null;
+let _lastSavedAt=0;
 const sv=()=>{
   try{localStorage.setItem('tally_v6',JSON.stringify(S));}catch(e){}
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(async()=>{
     try{
+      _lastSavedAt=Date.now();
       await _sb.from('tally_data').update({data:S,updated_at:new Date().toISOString()}).eq('id',_userId);
     }catch(e){console.log('DB save error',e);}
   },1000);
 };
+
+// 실시간 sync — 다른 기기에서 변경되면 자동으로 반영
+function startRealtimeSync(){
+  _sb.channel('tally-sync')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'tally_data',filter:`id=eq.${_userId}`},
+      payload=>{
+        // 내가 방금 저장한 것(1.5초 이내)이면 무시
+        if(Date.now()-_lastSavedAt<1500)return;
+        try{
+          const remote=typeof payload.new.data==='string'?JSON.parse(payload.new.data):payload.new.data;
+          S=Object.assign({},S,remote);
+          localStorage.setItem('tally_v6',JSON.stringify(S));
+          // 현재 페이지 다시 렌더
+          const activePage=document.querySelector('.page.on');
+          if(activePage){
+            const pid=activePage.id.replace('page-','');
+            if(pid==='home'){renderDateStreak();renderGoals();renderTallies();renderTodos();renderElist();renderSleepButtons();renderExerciseBtn();renderEnergyChecks();}
+            else if(pid==='log')renderLog();
+            else if(pid==='exp'){renderTreeVis();}
+            else if(pid==='soul')renderSoulPage();
+          }
+          // 싱크 표시 잠깐 보여주기
+          const ind=document.getElementById('sync-indicator');
+          if(ind){ind.style.opacity='1';setTimeout(()=>ind.style.opacity='0',1500);}
+        }catch(e){console.log('realtime sync error',e);}
+      }
+    ).subscribe();
+}
 
 function goPage(p){
   document.querySelectorAll('.page').forEach(el=>{
