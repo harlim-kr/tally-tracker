@@ -297,9 +297,9 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   <!-- GOGO 노드 팝업 -->
   <div id="gogo-popup-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:400;align-items:flex-end;justify-content:center;" onclick="closeGogoPopup()">
     <div style="background:var(--bg);border-radius:16px 16px 0 0;width:100%;max-width:540px;padding:20px;box-shadow:0 -4px 24px rgba(0,0,0,0.1);" onclick="event.stopPropagation()">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-        <span id="gogo-popup-title" style="font-size:13px;font-weight:500;color:var(--ink);"></span>
-        <button onclick="closeGogoPopup()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--ink3);line-height:1;">✕</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:8px;">
+        <input id="gogo-popup-title-input" style="flex:1;font-size:13px;font-weight:500;color:var(--ink);border:none;border-bottom:1px solid var(--bd2);outline:none;background:transparent;font-family:inherit;padding:2px 0;" placeholder="이름"/>
+        <button onclick="closeGogoPopup()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--ink3);line-height:1;flex-shrink:0;">✕</button>
       </div>
       <div id="gogo-popup-dates" style="font-size:10px;color:var(--ink3);margin-bottom:10px;"></div>
       <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">노드 아래 표시</div>
@@ -1672,7 +1672,7 @@ function openGogoPopup(label){
   _gogoPopupKey=label;
   if(!S.expNotes)S.expNotes={};
   const data=S.expNotes[label]||{};
-  document.getElementById('gogo-popup-title').textContent=label;
+  document.getElementById('gogo-popup-title-input').value=label;
   document.getElementById('gogo-popup-sublabel').value=data.sublabel||'';
   document.getElementById('gogo-popup-status').value=data.status||'new';
   document.getElementById('gogo-popup-note').value=data.note||DEFAULT_NOTE_GOGO;
@@ -1695,10 +1695,11 @@ function saveGogoPopup(){
   if(!_gogoPopupKey)return;
   if(!S.expNotes)S.expNotes={};
   const prev=S.expNotes[_gogoPopupKey]||{};
+  const newLabel=document.getElementById('gogo-popup-title-input').value.trim()||_gogoPopupKey;
   const newStatus=document.getElementById('gogo-popup-status').value;
   const statusLog=prev.statusLog||[];
   if(newStatus!==(prev.status||'new'))statusLog.push({status:newStatus,date:TK()});
-  S.expNotes[_gogoPopupKey]={
+  const newData={
     ...prev,
     sublabel:document.getElementById('gogo-popup-sublabel').value.trim(),
     status:newStatus,
@@ -1706,6 +1707,25 @@ function saveGogoPopup(){
     createdAt:prev.createdAt||TK(),
     statusLog
   };
+  // 이름이 바뀌었으면 키 이전 + 아웃라인 텍스트 교체
+  if(newLabel!==_gogoPopupKey){
+    delete S.expNotes[_gogoPopupKey];
+    S.expNotes[newLabel]=newData;
+    // 아웃라인에서 정확히 일치하는 줄 교체
+    if(S.expOutline){
+      S.expOutline=S.expOutline.split('\n').map(line=>{
+        const trimmed=line.trim();
+        if(trimmed===_gogoPopupKey){
+          return line.replace(trimmed,newLabel);
+        }
+        return line;
+      }).join('\n');
+      const inp=document.getElementById('exp-outline-input');
+      if(inp)inp.value=S.expOutline;
+    }
+  } else {
+    S.expNotes[_gogoPopupKey]=newData;
+  }
   sv();closeGogoPopup();renderTreeVis();
 }
 
