@@ -204,9 +204,9 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
         <div id="felist"></div>
         <button class="btn" style="margin-bottom:12px;" onclick="addFE()">+ 한 줄 추가</button>
         <div class="divider"></div>
-        <input class="sinput" id="inp-learned" placeholder="마음에 든 점"/>
-        <input class="sinput" id="inp-proud" placeholder="효과를 본 점"/>
-        <input class="sinput" id="inp-tmr" placeholder="인정하는 점"/>
+        <input class="sinput" id="inp-learned" oninput="saveWU(true)" placeholder="마음에 든 점"/>
+        <input class="sinput" id="inp-proud" oninput="saveWU(true)" placeholder="효과를 본 점"/>
+        <input class="sinput" id="inp-tmr" oninput="saveWU(true)" placeholder="인정하는 점"/>
         <button class="btn btn-acc" onclick="saveWU()" style="width:100%;">마무리 저장</button>
       </div>
     </div>
@@ -882,7 +882,7 @@ function renderFE(){
     const row=document.createElement('div');row.className='fe-item';
     const inp=document.createElement('input');
     inp.placeholder='어떤 일이나 생각이 에너지를 바꿨어?';inp.value=item.text;
-    inp.oninput=e=>feItems[i].text=e.target.value;
+    inp.oninput=e=>{feItems[i].text=e.target.value;saveWU(true);};
     const tog=document.createElement('div');tog.className='pmtog';
     const bp=document.createElement('button');bp.type='button';bp.className='pmbtn'+(item.pm==='+'?' ap':'');bp.textContent='+';
     bp.onclick=()=>{feItems[i].pm='+';renderFE();};
@@ -892,18 +892,19 @@ function renderFE(){
   });
 }
 
-function saveWU(){
+function saveWU(silent){
   const k=TK();
   S.wrapUps[k]={
     tallyEnergy:GT().map(h=>h?{proj:h.proj,note:h.note,energy:h.energy}:null).filter(Boolean),
     freeEnergy:feItems.filter(x=>x.text),
-    learned:document.getElementById('inp-learned').value.trim(),
-    proud:document.getElementById('inp-proud').value.trim(),
-    tmr:document.getElementById('inp-tmr').value.trim(),
+    learned:(document.getElementById('inp-learned')||{}).value||'',
+    proud:(document.getElementById('inp-proud')||{}).value||'',
+    tmr:(document.getElementById('inp-tmr')||{}).value||'',
     energyLog:S.energyLog&&S.energyLog[k]?S.energyLog[k]:{},
     exercise:S.exercise&&S.exercise[k]?S.exercise[k]:null
   };
-  sv();alert('하루 마무리 저장됐어.');
+  sv();
+  if(!silent)alert('하루 마무리 저장됐어.');
 }
 
 let _chartFocusDay=null;
@@ -927,20 +928,20 @@ function toggleChartAll(){
 }
 function renderWeekChart(){
   const dayNames=['일','월','화','수','목','금','토'];
-  const DAY_COLORS=['#E57373','#FF9800','#FDD835','#66BB6A','#42A5F5','#5C6BC0','#AB47BC'];
   const btnEl=document.getElementById('week-day-btns');
-  // 이번 주 월요일 기준으로 7일
   const today=new Date();
-  const todayDay=today.getDay(); // 0=일, 1=월 ...
-  const mondayOffset=todayDay===0?-6:1-todayDay; // 이번 주 월요일까지의 offset
+  const todayStr=TK();
+  const todayDay=today.getDay();
+  const mondayOffset=todayDay===0?-6:1-todayDay;
   const keys=[];
   for(let i=0;i<7;i++){
     const d=new Date();
     d.setDate(today.getDate()+mondayOffset+_weekOffset+i);
     keys.push(d.toISOString().slice(0,10));
   }
-  const colors=keys.map(k=>{const d=new Date(k+'T12:00:00');return DAY_COLORS[d.getDay()];});
-  // 주간 레이블
+  // 프로젝트 색상 맵
+  const projColorMap={};
+  (S.projects||[]).forEach(p=>{projColorMap[p.name]=p.color;});
   const wlabel=document.getElementById('week-label');
   if(wlabel)wlabel.textContent=keys[0].slice(5)+' (월) ~ '+keys[6].slice(5)+' (일)'+(_weekOffset===0?' · 이번 주':'');
   if(btnEl){
@@ -950,9 +951,9 @@ function renderWeekChart(){
       const dow=dayNames[d.getDay()];
       const btn=document.createElement('button');
       const isActive=_chartFocusDay===k;
-      const btnColor=DAY_COLORS[new Date(k+'T12:00:00').getDay()];
-      btn.style.cssText='font-size:11px;padding:3px 8px;border-radius:99px;border:1.5px solid '+btnColor+';cursor:pointer;font-family:inherit;transition:all 0.1s;background:'+(isActive?btnColor:'transparent')+';color:'+(isActive?'#fff':'var(--ink3)')+';';
-      btn.textContent=dow+(idx===6?' (오늘)':'');
+      const isToday=k===todayStr;
+      btn.style.cssText='font-size:11px;padding:3px 8px;border-radius:99px;border:1.5px solid var(--bd2);cursor:pointer;font-family:inherit;transition:all 0.1s;background:'+(isActive?'#5c4f47':'transparent')+';color:'+(isActive?'#fff':isToday?'var(--ink)':'var(--ink3)')+';font-weight:'+(isToday?'600':'400')+';';
+      btn.textContent=dow;
       btn.onclick=()=>{_chartFocusDay=isActive?null:k;renderWeekChart();};
       btnEl.appendChild(btn);
     });
@@ -990,29 +991,47 @@ function renderWeekChart(){
       });
     }
     if(!pts.length)return;
-    const dayColor=DAY_COLORS[new Date(k+'T12:00:00').getDay()];
+    const isToday2=k===todayStr;
+    const isDashed=!isToday2; // 오늘 아닌 날은 점선
+    // 프로젝트별로 포인트 분리해서 색 적용
+    // 먼저 전체 선 (중립색)
     datasets.push({
       label:k.slice(5)+' ('+dow+')',
       data:pts,
-      borderColor:dayColor,
+      borderColor:isToday2?'#a09890':'#c8c0b8',
       backgroundColor:'transparent',
-      borderWidth:isFaded?1:2,
-      pointRadius:isFaded?1:3,
+      borderWidth:isFaded?1:1.5,
+      pointRadius:0,
       tension:0,
-      borderDash:isFaded?[3,3]:[],
+      borderDash:isDashed?[4,3]:[],
     });
-    // 기상/취침 — 선 시작/끝에 마커 추가
+    // 프로젝트별 색 점
+    const projPts={};
+    sorted.forEach(h=>{
+      const col=projColorMap[h.proj]||'#a09890';
+      if(!projPts[col])projPts[col]=[];
+      const t=new Date(h.time);const hf=t.getHours()+t.getMinutes()/60;
+      let cumIdx=pts.findIndex(p=>Math.abs(p.x-Math.round(hf*10)/10)<0.01);
+      if(cumIdx>-1)projPts[col].push(pts[cumIdx]);
+    });
+    Object.entries(projPts).forEach(([col,ppts])=>{
+      datasets.push({
+        label:'',data:ppts,
+        borderColor:col,backgroundColor:col,
+        pointRadius:isFaded?2:4,
+        showLine:false,type:'scatter'
+      });
+    });
+    // 기상/취침 별
     const sl=S.sleep&&S.sleep[k]?S.sleep[k]:{};
     if(sl.wake&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
       const t=new Date(sl.wake);const tKST=new Date(t.getTime()+9*60*60*1000);
       let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
       if(hf<4)hf+=24;
-      pts.unshift({x:hf,y:0});
-      // 기상 별 포인트 별도 dataset
       datasets.push({
         label:'기상 '+k.slice(5),data:[{x:hf,y:0}],
-        borderColor:dayColor,backgroundColor:dayColor,
-        pointStyle:'star',pointRadius:isFaded?3:8,
+        borderColor:'#a09890',backgroundColor:'#a09890',
+        pointStyle:'star',pointRadius:isFaded?3:7,
         showLine:false,type:'scatter'
       });
     }
@@ -1020,12 +1039,10 @@ function renderWeekChart(){
       const t=new Date(sl.sleep);const tKST=new Date(t.getTime()+9*60*60*1000);
       let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
       if(hf<4)hf+=24;
-      pts.push({x:hf,y:pts[pts.length-1].y});
-      // 취침 별 포인트 별도 dataset
       datasets.push({
-        label:'취침 '+k.slice(5),data:[{x:hf,y:pts[pts.length-1].y}],
-        borderColor:dayColor,backgroundColor:dayColor,
-        pointStyle:'star',pointRadius:isFaded?3:8,
+        label:'취침 '+k.slice(5),data:[{x:hf,y:pts[pts.length-1]?pts[pts.length-1].y:0}],
+        borderColor:'#a09890',backgroundColor:'#a09890',
+        pointStyle:'star',pointRadius:isFaded?3:7,
         showLine:false,type:'scatter'
       });
     }
@@ -1766,6 +1783,14 @@ function addSoulQuestion(){
   const q=inp.value.trim();
   if(!q)return;
   if(!S.soulQuestions)S.soulQuestions=[];
+  // 추가 전에 현재 답변 먼저 저장
+  const k=TK();
+  if(!S.soulEntries)S.soulEntries={};
+  const curAnswers=S.soulQuestions.map((_,j)=>{
+    const el=document.getElementById('soul-ans-'+j);
+    return el?el.value:'';
+  });
+  if(S.soulEntries[k])S.soulEntries[k].answers=curAnswers;
   S.soulQuestions.push(q);
   inp.value='';
   sv();renderSoulQuestionList();renderSoulEntryArea();
@@ -1807,6 +1832,17 @@ function renderSoulEntryArea(){
     ta.style.cssText='width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--ink);font-family:inherit;resize:none;min-height:60px;line-height:1.6;';
     ta.placeholder='여기에 적어봐...';
     ta.value=(existing.answers&&existing.answers[i])||'';
+    ta.oninput=()=>{
+      // 입력할 때마다 임시저장
+      if(!S.soulEntries)S.soulEntries={};
+      const qs2=S.soulQuestions||[];
+      const answers2=qs2.map((_,j)=>{
+        const el=document.getElementById('soul-ans-'+j);
+        return el?el.value:'';
+      });
+      S.soulEntries[k]={date:k,questions:[...qs2],answers:answers2};
+      sv();
+    };
     block.appendChild(lbl);block.appendChild(ta);
     el.appendChild(block);
   });
