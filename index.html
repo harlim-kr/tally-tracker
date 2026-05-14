@@ -106,7 +106,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   </button>
   </div>
 
-  <div id="page-home" class="page on">
+  <div id="page-home" class="page on" style="position:relative;">
     <!-- 날짜/스트릭 -->
     <div id="user-tag-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div id="user-tag" style="font-size:12px;color:var(--ink3);"></div>
@@ -152,29 +152,28 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
       <div id="energy-checks"></div>
     </div>
 
-    <!-- 탈리마크 -->
-    <div class="card">
-      <!-- 범례 + 기상/취침 -->
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;">
-        <div id="proj-legend" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
-        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
-          <button id="btn-wake" onclick="editSleep('wake')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">기상</button>
-          <button id="btn-sleep" onclick="editSleep('sleep')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">취침</button>
-          <button id="btn-exercise" onclick="toggleExercise()" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">운동</button>
+    <!-- 타임바 + 탈리마크 -->
+    <div style="display:flex;gap:6px;align-items:flex-start;">
+      <!-- 탈리마크 카드 -->
+      <div class="card" style="flex:1;min-width:0;">
+        <!-- 범례 + 기상/취침 -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:8px;">
+          <div id="proj-legend" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            <button id="btn-wake" onclick="editSleep('wake')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">기상</button>
+            <button id="btn-sleep" onclick="editSleep('sleep')" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">취침</button>
+            <button id="btn-exercise" onclick="toggleExercise()" style="font-size:11px;padding:3px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">운동</button>
+          </div>
         </div>
-      </div>
-      <!-- 좌우 탈리 -->
-      <div style="display:flex;gap:16px;align-items:flex-start;">
-        <div style="flex:1;min-width:0;">
-          <div class="tally-wrap" id="tally-wrap-left"></div>
+        <!-- 좌우 탈리 -->
+        <div style="display:flex;gap:16px;align-items:flex-start;">
+          <div style="flex:1;min-width:0;"><div class="tally-wrap" id="tally-wrap-left"></div></div>
+          <div style="width:0.5px;background:var(--bd);align-self:stretch;"></div>
+          <div style="flex:1;min-width:0;"><div class="tally-wrap" id="tally-wrap-right"></div></div>
         </div>
-        <div style="width:0.5px;background:var(--bd);align-self:stretch;"></div>
-        <div style="flex:1;min-width:0;">
-          <div class="tally-wrap" id="tally-wrap-right"></div>
-        </div>
-      </div>
-      <div class="tstats" id="tstats">오늘 0번 · 0분</div>
-    </div>
+        <div class="tstats" id="tstats">오늘 0번 · 0분</div>
+      </div><!-- 탈리마크 카드 끝 -->
+    </div><!-- 타임바+탈리 flex 끝 -->
 
     <!-- 할일 -->
     <div class="card">
@@ -426,6 +425,15 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
         <input type="color" id="npcolor" value="#8ed4b0" style="width:36px;height:36px;border:none;border-radius:4px;padding:2px;cursor:pointer;"/>
         <button class="btn" onclick="addProj()">추가</button>
       </div>
+      <div class="divider"></div>
+      <div class="clabel">타임바 설정</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button onclick="setTimebarTab('weekday')" id="tb-tab-weekday" class="btn btn-acc" style="flex:1;">주중</button>
+        <button onclick="setTimebarTab('weekend')" id="tb-tab-weekend" class="btn" style="flex:1;">휴일</button>
+      </div>
+      <div id="tb-blocks"></div>
+      <button class="btn" onclick="addTimebarBlock()" style="width:100%;margin-top:6px;">+ 시간대 추가</button>
+      <button class="btn btn-acc" onclick="saveTimebarSettings()" style="width:100%;margin-top:6px;">저장</button>
     </div>
   </div>
 
@@ -486,9 +494,15 @@ async function loadFromDB(){
     const {data,error}=await _sb.from('tally_data').select('data').eq('id',_userId).single();
     if(error||!data)return;
     const remote=typeof data.data==='string'?JSON.parse(data.data):data.data;
+    const prevTimebar=S.timebar; // 기본값 백업
     S=Object.assign({},S,remote);
+    // timebar가 없거나 블록이 없으면 기본값 유지
+    if(!S.timebar||(!S.timebar.weekday?.length&&!S.timebar.weekend?.length)){
+      S.timebar=prevTimebar;
+    }
     localStorage.setItem('tally_v6',JSON.stringify(S));
-    renderDateStreak();renderGoals();renderLegend();renderTallies();renderTodos();renderElist();renderSleepButtons();renderExerciseBtn();renderEnergyChecks();renderEnergyChecks();
+    renderDateStreak();renderGoals();renderLegend();renderTallies();renderTodos();renderElist();renderSleepButtons();renderExerciseBtn();renderEnergyChecks();renderEnergyChecks();renderHomeTimebar();
+    renderHomeTimebar();
     startRealtimeSync();
   }catch(e){console.log('DB load error',e);}
 }
@@ -547,6 +561,7 @@ function goPage(p){
     pageEl.classList.add('on');
     if(p==='exp') pageEl.style.display='flex';
   }
+  if(p==='home')renderHomeTimebar();
   if(p==='log')renderLog();
   if(p==='exp'){renderExpEnergyWeek();expInitOutlineEvents();renderTreeVis();const gi=document.getElementById('gogo-ideas');if(gi&&S.gogoIdeas)gi.value=S.gogoIdeas;const fm=document.getElementById('exp-free-memo');if(fm&&S.expFreeMemo)fm.value=S.expFreeMemo;}
   if(p==='soul')renderSoulPage();
@@ -815,6 +830,24 @@ if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
+if(!S.timebar)S.timebar={
+  isWeekend:false,
+  weekday:[
+    {start:7,end:9,color:'#a8c8f0',label:'아침'},
+    {start:9,end:13,color:'#8ed4b0',label:'집중'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:20,color:'#f0a8a8',label:'휴식'},
+    {start:20,end:23,color:'#c4b8e8',label:'자유'}
+  ],
+  weekend:[
+    {start:8,end:10,color:'#a8c8f0',label:'아침'},
+    {start:10,end:13,color:'#c4b8e8',label:'자유'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:23,color:'#f0a8a8',label:'휴식'}
+  ]
+};
       S.archivedTodos.unshift({...t,archivedAt:TK()});
       S.todos.splice(i,1);sv();renderTodos();
     };
@@ -1305,6 +1338,7 @@ function renderMonthlyContent(){
 }
 
 function renderSettings(){
+  renderTimebarSettings();
   document.getElementById('sg-month').value=S.goals.month;
   document.getElementById('sg-week').value=S.goals.week;
   document.getElementById('sg-today').value=S.goals.today;
@@ -1448,6 +1482,24 @@ if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
+if(!S.timebar)S.timebar={
+  isWeekend:false,
+  weekday:[
+    {start:7,end:9,color:'#a8c8f0',label:'아침'},
+    {start:9,end:13,color:'#8ed4b0',label:'집중'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:20,color:'#f0a8a8',label:'휴식'},
+    {start:20,end:23,color:'#c4b8e8',label:'자유'}
+  ],
+  weekend:[
+    {start:8,end:10,color:'#a8c8f0',label:'아침'},
+    {start:10,end:13,color:'#c4b8e8',label:'자유'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:23,color:'#f0a8a8',label:'휴식'}
+  ]
+};
   if(!S.energyLog[k])S.energyLog[k]={};
   const log=S.energyLog[k];
   el.innerHTML='';
@@ -1897,6 +1949,157 @@ function renderSoulPage(){
   renderSoulQuestionList();
   renderSoulEntryArea();
 }
+// ===== 타임바 =====
+let _tbTab='weekday';
+
+function setTimebarTab(tab){
+  _tbTab=tab;
+  document.getElementById('tb-tab-weekday').className='btn'+(tab==='weekday'?' btn-acc':'');
+  document.getElementById('tb-tab-weekend').className='btn'+(tab==='weekend'?' btn-acc':'');
+  renderTimebarSettings();
+}
+
+function renderTimebarSettings(){
+  const el=document.getElementById('tb-blocks');
+  if(!el)return;
+  if(!S.timebar)S.timebar={isWeekend:false,weekday:[],weekend:[]};
+  const blocks=S.timebar[_tbTab]||[];
+  el.innerHTML='';
+  blocks.forEach((b,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+    row.innerHTML=`
+      <input type="number" min="0" max="24" value="${b.start}" style="width:44px;font-size:12px;padding:4px 6px;border:0.5px solid var(--bd2);border-radius:var(--r);text-align:center;font-family:inherit;" oninput="updateTBBlock(${i},'start',this.value)"/>
+      <span style="font-size:11px;color:var(--ink3);">~</span>
+      <input type="number" min="0" max="24" value="${b.end}" style="width:44px;font-size:12px;padding:4px 6px;border:0.5px solid var(--bd2);border-radius:var(--r);text-align:center;font-family:inherit;" oninput="updateTBBlock(${i},'end',this.value)"/>
+      <input type="color" value="${b.color}" style="width:30px;height:30px;border:none;border-radius:4px;padding:2px;cursor:pointer;" oninput="updateTBBlock(${i},'color',this.value)"/>
+      <input type="text" value="${b.label}" placeholder="라벨" style="flex:1;font-size:12px;padding:4px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);font-family:inherit;" oninput="updateTBBlock(${i},'label',this.value)"/>
+      <button onclick="delTBBlock(${i})" style="background:none;border:none;cursor:pointer;color:var(--ink3);font-size:14px;">✕</button>`;
+    el.appendChild(row);
+  });
+}
+
+function updateTBBlock(i,key,val){
+  if(!S.timebar)return;
+  const blocks=S.timebar[_tbTab];
+  if(!blocks[i])return;
+  blocks[i][key]=key==='start'||key==='end'?Number(val):val;
+  sv();renderHomeTimebar();
+}
+
+function delTBBlock(i){
+  if(!S.timebar)return;
+  S.timebar[_tbTab].splice(i,1);
+  sv();renderTimebarSettings();renderHomeTimebar();
+}
+
+function addTimebarBlock(){
+  if(!S.timebar)return;
+  const blocks=S.timebar[_tbTab];
+  const lastEnd=blocks.length?blocks[blocks.length-1].end:9;
+  blocks.push({start:lastEnd,end:lastEnd+2,color:'#d4c8be',label:''});
+  sv();renderTimebarSettings();renderHomeTimebar();
+}
+
+function toggleTimebar(){
+  if(!S.timebar)return;
+  S.timebar.isWeekend=!S.timebar.isWeekend;
+  sv();renderHomeTimebar();
+  const btn=document.getElementById('tb-toggle-btn');
+  if(btn)btn.textContent=S.timebar.isWeekend?'휴일':'주중';
+}
+
+function renderHomeTimebar(){
+  // 탈리카드 왼쪽 sticky div
+  let el=document.getElementById('home-timebar-fixed');
+  if(!el){
+    el=document.createElement('div');
+    el.id='home-timebar-fixed';
+    document.body.appendChild(el);
+    // 리사이즈시 위치 재계산
+    window.addEventListener('resize',()=>{
+      const pe=document.getElementById('page-home');
+      if(pe&&el){const pl=pe.getBoundingClientRect().left;el.style.left=Math.max(0,pl-22)+'px';}
+    });
+  }
+  if(!S.timebar){el.style.display='none';return;}
+  const isWeekend=S.timebar.isWeekend;
+  const blocks=S.timebar[isWeekend?'weekend':'weekday']||[];
+  if(!blocks.length){el.style.display='none';return;}
+
+  const startH=6, endH=22, totalH=endH-startH;
+  const BAR_H=totalH*19;
+  const BAR_W=9;
+
+  el.innerHTML='';
+  // 콘텐츠 영역 왼쪽에 붙이기
+  const pageEl=document.getElementById('page-home');
+  const pageLeft=pageEl?pageEl.getBoundingClientRect().left:0;
+  el.style.cssText=`position:fixed;left:${Math.max(0,pageLeft-58)}px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:row;align-items:flex-start;gap:0;padding:4px 0;`;
+
+  // 바
+  const barWrap=document.createElement('div');
+  barWrap.style.cssText=`position:relative;width:${BAR_W}px;height:${BAR_H}px;border-radius:0 3px 3px 0;overflow:hidden;background:var(--bd);flex-shrink:0;`;
+
+  const boundaryHours=new Set([startH,endH]);
+  blocks.forEach(b=>{
+    const s=Math.max(b.start,startH), e=Math.min(b.end,endH);
+    if(s>=e)return;
+    boundaryHours.add(b.start);boundaryHours.add(b.end);
+    const top=((s-startH)/totalH)*BAR_H;
+    const h=((e-s)/totalH)*BAR_H;
+    const seg=document.createElement('div');
+    seg.style.cssText=`position:absolute;left:0;top:${top}px;width:100%;height:${h}px;background:${b.color};`;
+    barWrap.appendChild(seg);
+  });
+  // 왼쪽: 시간+라벨 같은 컬럼, 우정렬 / 오른쪽: 바
+  const leftWrap=document.createElement('div');
+  leftWrap.style.cssText=`position:relative;height:${BAR_H}px;flex-shrink:0;display:flex;flex-direction:row;align-items:flex-start;gap:2px;`;
+
+  // 시간+라벨 통합 컬럼 (우정렬)
+  const infoWrap=document.createElement('div');
+  infoWrap.style.cssText=`position:relative;height:${BAR_H}px;width:32px;flex-shrink:0;`;
+
+  // 시간 눈금
+  Array.from(boundaryHours).sort((a,b2)=>a-b2).forEach(h=>{
+    const top=((h-startH)/totalH)*BAR_H;
+    const tick=document.createElement('div');
+    tick.style.cssText=`position:absolute;top:${top-6}px;left:0;width:100%;font-size:7px;color:var(--ink3);line-height:1;white-space:nowrap;font-family:inherit;text-align:right;`;
+    tick.textContent=h;
+    infoWrap.appendChild(tick);
+  });
+
+  // 라벨 — 시간대 중간에, 우정렬
+  blocks.forEach(b=>{
+    const s=Math.max(b.start,startH), e=Math.min(b.end,endH);
+    if(s>=e||!b.label)return;
+    const top=((s-startH)/totalH)*BAR_H;
+    const h=((e-s)/totalH)*BAR_H;
+    if(h<12)return;
+    const lbl=document.createElement('div');
+    lbl.style.cssText=`position:absolute;top:${top+h/2-5}px;left:0;width:100%;font-size:7px;color:var(--ink2);line-height:1;text-align:right;white-space:nowrap;overflow:hidden;font-family:inherit;`;
+    lbl.textContent=b.label;
+    infoWrap.appendChild(lbl);
+  });
+
+  leftWrap.appendChild(infoWrap);
+  leftWrap.appendChild(barWrap);
+  el.appendChild(leftWrap);
+
+  // 주중/휴일 토글
+  const toggleBtn=document.createElement('button');
+  toggleBtn.id='tb-toggle-btn';
+  toggleBtn.textContent=isWeekend?'휴':'중';
+  toggleBtn.style.cssText='position:absolute;top:-14px;left:0;font-size:7px;padding:1px 3px;border-radius:3px;border:0.5px solid var(--bd2);background:var(--bg);cursor:pointer;color:var(--ink3);font-family:inherit;';
+  toggleBtn.onclick=toggleTimebar;
+  el.appendChild(toggleBtn);
+}
+
+function saveTimebarSettings(){
+  sv();
+  renderHomeTimebar();
+  alert('타임바 저장됐어!');
+}
 function stampSleep(type){
   const k=TK();
   if(!S.sleep)S.sleep={};
@@ -2056,6 +2259,24 @@ if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
+if(!S.timebar)S.timebar={
+  isWeekend:false,
+  weekday:[
+    {start:7,end:9,color:'#a8c8f0',label:'아침'},
+    {start:9,end:13,color:'#8ed4b0',label:'집중'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:20,color:'#f0a8a8',label:'휴식'},
+    {start:20,end:23,color:'#c4b8e8',label:'자유'}
+  ],
+  weekend:[
+    {start:8,end:10,color:'#a8c8f0',label:'아침'},
+    {start:10,end:13,color:'#c4b8e8',label:'자유'},
+    {start:13,end:14,color:'#f0e8a8',label:'점심'},
+    {start:14,end:18,color:'#8ed4b0',label:'집중'},
+    {start:18,end:23,color:'#f0a8a8',label:'휴식'}
+  ]
+};
 // user-tag 즉시 설정
 const _utEl=document.getElementById('user-tag');
 const _utRow=document.getElementById('user-tag-row');
