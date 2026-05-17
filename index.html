@@ -1033,43 +1033,44 @@ function renderWeekChart(){
     const dayColor=DAY_COLORS[d.getDay()];
     const isToday2=k===todayStr;
     const isDashed=!isToday2;
+    // 기상/취침 시간 pts에 포함해서 선 연결
+    const sl=S.sleep&&S.sleep[k]?S.sleep[k]:{};
+    const connectedPts=[];
+    // 기상 — 맨 앞에 추가
+    if(sl.wake){
+      const t=new Date(sl.wake);const tKST=new Date(t.getTime()+9*60*60*1000);
+      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
+      if(hf<4)hf+=24;
+      connectedPts.push({x:hf,y:0,isSleep:true});
+    }
+    connectedPts.push(...pts);
+    // 취침 — 맨 뒤에 추가
+    if(sl.sleep){
+      const t=new Date(sl.sleep);const tKST=new Date(t.getTime()+9*60*60*1000);
+      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
+      if(hf<4)hf+=24;
+      connectedPts.push({x:hf,y:pts.length?pts[pts.length-1].y:0,isSleep:true});
+    }
+    if(!connectedPts.length)return;
+
+    // pointStyle 배열 — 기상/취침은 star, 나머지는 circle
+    const pointStyles=connectedPts.map(p=>p.isSleep?'star':'circle');
+    const pointRadii=connectedPts.map(p=>p.isSleep?(isFaded?3:8):(isFaded?2:4));
+
     // 요일별 색으로 선 그리기
     datasets.push({
       label:k.slice(5)+' ('+dow+')',
-      data:pts,
+      data:connectedPts,
       borderColor:dayColor,
       backgroundColor:'transparent',
       borderWidth:isFaded?1:2,
-      pointRadius:isFaded?2:4,
+      pointRadius:pointRadii,
+      pointStyle:pointStyles,
       pointBackgroundColor:dayColor,
       pointBorderColor:dayColor,
       tension:0.1,
       borderDash:isDashed?[5,3]:[],
     });
-    // 기상/취침 별
-    const sl=S.sleep&&S.sleep[k]?S.sleep[k]:{};
-    if(sl.wake&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
-      const t=new Date(sl.wake);const tKST=new Date(t.getTime()+9*60*60*1000);
-      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
-      if(hf<4)hf+=24;
-      datasets.push({
-        label:'기상 '+k.slice(5),data:[{x:hf,y:0}],
-        borderColor:dayColor,backgroundColor:dayColor,
-        pointStyle:'star',pointRadius:isFaded?3:8,
-        showLine:false,type:'scatter'
-      });
-    }
-    if(sl.sleep&&pts.length&&(!_chartFocusDay||_chartFocusDay===k)){
-      const t=new Date(sl.sleep);const tKST=new Date(t.getTime()+9*60*60*1000);
-      let hf=Math.round((tKST.getUTCHours()+tKST.getUTCMinutes()/60)*10)/10;
-      if(hf<4)hf+=24;
-      datasets.push({
-        label:'취침 '+k.slice(5),data:[{x:hf,y:pts[pts.length-1]?pts[pts.length-1].y:0}],
-        borderColor:dayColor,backgroundColor:dayColor,
-        pointStyle:'star',pointRadius:isFaded?3:8,
-        showLine:false,type:'scatter'
-      });
-    }
   });
   if(!datasets.length){
     const ctx=canvas.getContext('2d');
