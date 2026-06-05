@@ -2568,7 +2568,7 @@ function renderTrackTree(){
     return h;
   }
   function nW(nid){return _trackOpenIds.has(nid)?OPEN_W:NODE_W;}
-  function kidsOf(nid){const n=S.trackNodes.find(x=>x.id===nid);if(n&&n.region&&n.region.collapsed)return [];return S.trackNodes.filter(c=>c.parentId===nid);}
+  function kidsOf(nid){const n=S.trackNodes.find(x=>x.id===nid);if(n&&n.region&&n.region.collapsed){if(n.region.endId){const e=S.trackNodes.find(x=>x.id===n.region.endId);return e?[e]:[];}return [];}return S.trackNodes.filter(c=>c.parentId===nid);}
   function calcW(nid){
     const ch=kidsOf(nid);
     if(!ch.length)return nW(nid)+H_GAP;
@@ -2637,7 +2637,7 @@ function renderTrackTree(){
     const diamondCol=isDiamond&&!isOpen;
     const radius=node.shape==='rect'?'3px':(isDiamond?'10px':'999px');
     const box=document.createElement('div');
-    box.style.cssText=`width:${boxW}px;min-height:${NODE_H}px;background:${boxBg};border:2px solid ${isConnFrom?'#f0a8a8':tagColor};border-radius:${radius};padding:0 14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.05);box-sizing:border-box;visibility:${visible?'visible':'hidden'};opacity:${isDashed?0.4:1};overflow:${stickerOn?'visible':'hidden'};position:relative;`;
+    box.style.cssText=`width:${boxW}px;min-height:${NODE_H}px;background:${boxBg};border:2px solid ${(isConnFrom||(_compressPlacing&&_compressFirstId===node.id))?'#f0a8a8':tagColor};border-radius:${radius};padding:0 14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.05);box-sizing:border-box;visibility:${visible?'visible':'hidden'};opacity:${isDashed?0.4:1};overflow:${stickerOn?'visible':'hidden'};position:relative;`;
     if(isOpen){box.style.borderRadius='14px';box.style.boxShadow='0 2px 10px rgba(0,0,0,0.14)';box.style.borderColor='#5c4f47';}
     if(diamondCol){
       box.style.border='none';box.style.boxShadow='none';box.style.borderRadius='0';
@@ -2685,7 +2685,7 @@ function renderTrackTree(){
     box.addEventListener('click',e=>{
       e.stopPropagation();
       if(lbl.contentEditable==='true')return;
-      if(_compressPlacing){ makeRegion(node.id); return; }
+      if(_compressPlacing){ compressPick(node.id); return; }
       if(node.region&&node.region.collapsed){ node.region.collapsed=false; sv(); renderTrackTree(); return; }
       if(_trackGoalPlacing){ attachTrackGoal(node.id); return; }
       if(_trackConnectFrom==='__waiting__'){_trackConnectFrom=node.id;renderTrackTree();return;}
@@ -2893,6 +2893,8 @@ if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goa
       const p=positions[node.id];if(!p)return;
       const col=!!node.region.collapsed;
       const allDesc=getDesc(node.id);
+      let hiddenN=allDesc.length;
+      if(node.region.endId){const ed=getDesc(node.region.endId);hiddenN=allDesc.length-(ed.length+1);}
       let ids=[node.id];
       if(!col)ids=ids.concat(allDesc.filter(id=>positions[id]));
       let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
@@ -2904,7 +2906,7 @@ if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goa
       frame.style.cssText='position:absolute;left:'+rx+'px;top:'+ry+'px;width:'+rw+'px;height:'+rh+'px;border:1.5px dashed #b8a89a;border-radius:14px;background:rgba(168,150,130,0.07);z-index:0;box-sizing:border-box;';
       const ttl=document.createElement('div');
       ttl.style.cssText='position:absolute;top:-11px;left:16px;background:'+_canvasBg+';padding:1px 8px;border-radius:8px;font-size:11px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap;z-index:6;';
-      ttl.textContent=(col?'▸ ':'▾ ')+(node.region.title||'압축영역')+(col?(' +'+allDesc.length):'');
+      ttl.textContent=(col?'▸ ':'▾ ')+(node.region.title||'압축영역')+(col?(' +'+hiddenN):'');
       ttl.onclick=e=>{e.stopPropagation();node.region.collapsed=!col;sv();renderTrackTree();};
       if(_trackEditMode){
         ttl.addEventListener('dblclick',e=>{e.stopPropagation();
@@ -3005,12 +3007,19 @@ if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goa
   function drawTrackEdges(){
     while(svg.firstChild)svg.removeChild(svg.firstChild);
     const treeRect=tree.getBoundingClientRect();
+    function vAnc(id){ // 보이는(박스 있는) 가장 가까운 조상 id
+      let c=S.trackNodes.find(n=>n.id===id);
+      while(c){ if(boxEls[c.id])return c.id; c=S.trackNodes.find(n=>n.id===c.parentId); }
+      return null;
+    }
     // 부모-자식 구조선 (화살표)
     S.trackNodes.forEach(node=>{
       if(!node.parentId)return;
+      if(!boxEls[node.id])return; // 숨겨진 노드는 선 없음
       const parent=S.trackNodes.find(n=>n.id===node.parentId);
-      if(!parent||!tagVis(node)||!tagVis(parent))return;
-      const fb=boxGeo(node.parentId,treeRect),tb=boxGeo(node.id,treeRect);if(!fb||!tb)return;
+      if(!parent||!tagVis(node))return;
+      const fId=vAnc(node.parentId);if(!fId||fId===node.id)return;
+      const fb=boxGeo(fId,treeRect),tb=boxGeo(node.id,treeRect);if(!fb||!tb)return;
       const fx=fb.cx,fy=fb.bottom,tx=tb.cx,ty=tb.top,my=fy+Math.min(16,(ty-fy)/2);
       const st=node.edgeStyle||'normal';
       const dash=(st==='dashed'||st==='dashed-dim')?'4 2':'none';
@@ -3282,21 +3291,43 @@ function toggleTrackHomePanel(){
 }
 
 // ===== 압축 영역 =====
+let _compressFirstId=null;
+function _compressBtnUI(){
+  const b=document.getElementById('track-compress-btn');if(!b)return;
+  if(_compressPlacing){b.style.background='#5c4f47';b.style.color='#fff';b.textContent=_compressFirstId?'범위 끝 도형 선택':'시작 도형 선택…';}
+  else{b.style.background='transparent';b.style.color='var(--ink3)';b.textContent='📦 압축';}
+}
 function startCompress(){
-  _compressPlacing=!_compressPlacing;
+  _compressPlacing=!_compressPlacing;_compressFirstId=null;
   if(_trackGoalPlacing){_trackGoalPlacing=false;const gb=document.getElementById('track-goal-btn');if(gb){gb.style.background='transparent';gb.style.color='var(--ink3)';gb.textContent='+ 목표';}}
   if(_trackConnectFrom){_trackConnectFrom=null;const cb=document.getElementById('track-connect-btn');if(cb){cb.style.background='transparent';cb.style.color='var(--ink3)';}}
-  const b=document.getElementById('track-compress-btn');
-  if(b){b.style.background=_compressPlacing?'#5c4f47':'transparent';b.style.color=_compressPlacing?'#fff':'var(--ink3)';b.textContent=_compressPlacing?'도형 선택…':'📦 압축';}
+  _compressBtnUI();renderTrackTree();
 }
-function makeRegion(nodeId){
-  const n=S.trackNodes.find(x=>x.id===nodeId);
-  if(n)n.region={title:'압축영역',caption:'',collapsed:false};
-  _compressPlacing=false;
-  const b=document.getElementById('track-compress-btn');
-  if(b){b.style.background='transparent';b.style.color='var(--ink3)';b.textContent='📦 압축';}
+function _isAncestor(aId,bId){ // a가 b의 조상인가
+  let c=S.trackNodes.find(n=>n.id===bId);
+  while(c&&c.parentId){ if(c.parentId===aId)return true; c=S.trackNodes.find(n=>n.id===c.parentId); }
+  return false;
+}
+function compressPick(nodeId){
+  // 1차: 표시만 (아무것도 압축 안 함)
+  if(_compressFirstId==null){
+    _compressFirstId=nodeId;_compressBtnUI();renderTrackTree();
+    return;
+  }
+  // 2차: 모체~후손 사이만 압축 (후손 아래는 그대로 보임)
+  const A=_compressFirstId, B=nodeId;
+  let topId=null, botId=null;
+  if(A===B){ topId=A; botId=null; }              // 같은 도형 → 그 도형부터 전체
+  else if(_isAncestor(A,B)){ topId=A; botId=B; } // A가 모체
+  else if(_isAncestor(B,A)){ topId=B; botId=A; } // B가 모체
+  if(topId){
+    const tn=S.trackNodes.find(x=>x.id===topId);
+    if(tn)tn.region={title:'압축영역',caption:'',collapsed:true,endId:botId};
+  }
+  _compressPlacing=false;_compressFirstId=null;_compressBtnUI();
   sv();renderTrackTree();
 }
+function makeRegion(nodeId){compressPick(nodeId);}
 function toggleRegion(nodeId){
   const n=S.trackNodes.find(x=>x.id===nodeId);
   if(n&&n.region){n.region.collapsed=!n.region.collapsed;sv();renderTrackTree();}
