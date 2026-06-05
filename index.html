@@ -93,10 +93,11 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
 <body>
 <div class="app">
   <div class="nav" style="display:flex;align-items:center;">
-    <button class="nb on" onclick="goPage('home')">홈</button>
+    <button class="nb" onclick="goPage('track')">추적</button>
+    <button class="nb" onclick="goPage('soul')">대화</button>
     <button class="nb" onclick="goPage('log')">기록</button>
     <button class="nb" onclick="goPage('exp')">놀이터</button>
-    <button class="nb" onclick="goPage('soul')">대화</button>
+    <button class="nb on" onclick="goPage('home')">홈</button>
     <div id="sync-indicator" style="font-size:10px;color:#8ed4b0;opacity:0;transition:opacity 0.3s;padding:0 4px;white-space:nowrap;">↻ 싱크</div>
   <button onclick="goPage('settings')" id="settings-icon-btn"  style="margin-left:auto;background:none;border:none;cursor:pointer;padding:6px 10px;color:var(--ink3);display:flex;align-items:center;">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -132,7 +133,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     </div>
 
     <!-- 목표+한마디 토글 -->
-    <div class="card" style="padding:12px 16px;margin-bottom:12px;">
+    <div class="card hw" id="hw-goals" style="padding:12px 16px;margin-bottom:12px;">
       <button class="toggle-btn" onclick="toggleTopPanel()">
         <span id="goals-summary" style="font-size:12px;color:var(--ink3);">목표 · 한마디</span>
         <span id="top-arrow" style="font-size:11px;color:var(--ink3);">▼</span>
@@ -147,13 +148,26 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     </div>
 
     <!-- 에너지 기반 -->
-    <div class="card" style="padding:12px 16px;margin-bottom:12px;">
+    <div class="card hw" id="hw-energy" style="padding:12px 16px;margin-bottom:12px;">
       <div style="font-size:12px;color:var(--ink2);margin-bottom:10px;line-height:1.5;">🌷 우직한 목표, 우연을 포착할 여유, 취향을 고려한 시스템? 약간의 고집</div>
       <div id="energy-checks"></div>
     </div>
 
+    <!-- 세상에 내보이기 현황 -->
+    <div class="card hw" id="ship-status-card" style="padding:14px 16px;margin-bottom:12px;text-align:center;">
+      <div style="font-size:15px;color:var(--ink3);font-family:inherit;margin-bottom:6px;">🌺 세상에 내보이고 상태파악</div>
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:14px;">
+        <span id="ship-today" style="font-size:62px;font-weight:700;color:#d9588f;line-height:1;">0</span>
+        <span id="ship-cum" style="font-size:16px;color:var(--ink2);">목표 0</span>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:10px;padding-top:8px;border-top:0.5px solid var(--bd);">
+        <span id="ship-goal" style="font-size:15px;color:var(--ink2);">이달 목표 미설정</span>
+        <span id="ship-period" style="font-size:20px;color:var(--ink3);white-space:nowrap;">이번 달</span>
+      </div>
+    </div>
+
     <!-- 타임바 + 탈리마크 -->
-    <div style="display:flex;gap:6px;align-items:flex-start;">
+    <div class="hw" id="hw-tally" style="display:flex;gap:6px;align-items:flex-start;margin-bottom:12px;">
       <!-- 탈리마크 카드 -->
       <div class="card" style="flex:1;min-width:0;">
         <!-- 범례 + 기상/취침 -->
@@ -176,7 +190,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     </div><!-- 타임바+탈리 flex 끝 -->
 
     <!-- 할일 -->
-    <div class="card">
+    <div class="card hw" id="hw-todos">
       <div class="todo-list" id="tlist"></div>
       <div class="add-row">
         <input id="ntodo" placeholder="할 일 추가 (! 붙이면 30분)" />
@@ -191,7 +205,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     </div>
 
     <!-- 하루 마무리 토글 -->
-    <div class="card" style="padding:0;overflow:hidden;">
+    <div class="card hw" id="hw-wrapup" style="padding:0;overflow:hidden;">
       <button class="toggle-btn" onclick="toggleWrapUp()" style="padding:12px 16px;">
         <span style="font-size:13px;color:var(--ink2);">하루 마무리</span>
         <span id="wrapup-arrow" style="font-size:11px;color:var(--ink3);">▼</span>
@@ -212,6 +226,16 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
   </div>
 
   <div id="page-log" class="page">
+    <!-- 세상에 내보낸 횟수 (2주) -->
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <button onclick="changeShipWeeks(-1)" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--ink2);padding:0 4px;">‹</button>
+        <div id="ship-range-label" style="font-size:12px;color:var(--ink2);">🌺 세상에 내보낸 횟수</div>
+        <button onclick="changeShipWeeks(1)" style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--ink2);padding:0 4px;">›</button>
+      </div>
+      <div id="ship-dots" style="overflow-x:auto;"></div>
+      <div style="font-size:10px;color:var(--ink3);margin-top:8px;">노란 점을 누르면 주황(도움됨)으로 바꿀 수 있어</div>
+    </div>
     <!-- 주간 그래프 -->
     <div class="card" style="margin-bottom:10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -313,7 +337,7 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
       <textarea id="gogo-popup-note" style="width:100%;font-size:12px;padding:8px 10px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--ink);font-family:inherit;height:140px;resize:none;margin-bottom:12px;"></textarea>
       <div style="display:flex;gap:8px;">
         <button onclick="toggleGogoPin()" id="gogo-pin-btn" style="font-size:12px;padding:7px 12px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">📌 핀</button>
-        <div style="flex:1;"></div>
+        <div id="track-filter-btns-unused" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
         <button onclick="closeGogoPopup()" style="font-size:12px;padding:7px 12px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
         <button onclick="saveGogoPopup()" style="font-size:12px;padding:7px 12px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
       </div>
@@ -403,6 +427,163 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
     </div><!-- 콘텐츠 끝 -->
   </div>
 
+  <div id="page-track" class="page" style="padding:0;display:none;flex-direction:column;overflow:hidden;">
+    <!-- 상단 툴바 -->
+    <div id="track-toolbar" style="padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:0.5px solid var(--bd);background:var(--bg);flex-shrink:0;flex-wrap:wrap;">
+      <!-- 작성/읽기 모드 토글 -->
+      <button onclick="toggleTrackEditMode()" id="track-edit-btn" style="font-size:11px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">👁 읽기</button>
+      <div id="track-edit-tools" style="display:none;align-items:center;gap:6px;">
+        <button onclick="addTrackNode()" style="font-size:11px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">+ 도형</button>
+        <button onclick="startTrackGoal()" id="track-goal-btn" style="font-size:11px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">+ 목표</button>
+        <button onclick="toggleTrackConnect()" id="track-connect-btn" style="font-size:11px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">🔗 연결</button>
+        <button onclick="startCompress()" id="track-compress-btn" style="font-size:11px;padding:4px 12px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">📦 압축</button>
+      </div>
+      <div style="flex:1;"></div>
+      <div id="track-sticker-ctrl" style="display:flex;align-items:center;border:1.5px solid var(--bd2);border-radius:99px;overflow:hidden;flex-shrink:0;">
+        <button onclick="stickerStep(-1)" style="font-size:12px;padding:4px 9px;border:none;background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">‹</button>
+        <span id="track-sticker-label" title="더블클릭: 색·이름 설정" style="font-size:11px;padding:4px 4px;color:var(--ink3);font-family:inherit;white-space:nowrap;cursor:pointer;min-width:54px;text-align:center;">🏷 기본</span>
+        <button onclick="stickerStep(1)" style="font-size:12px;padding:4px 9px;border:none;background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;">›</button>
+      </div>
+      <div id="track-filter-btns" style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;"></div>
+      <button onclick="toggleTrackHomePanel()" id="track-homepanel-btn" title="홈 기능 패널" style="font-size:11px;padding:4px 9px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;white-space:nowrap;">홈</button>
+    </div>
+    <!-- 메인 영역 -->
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <!-- 트리 캔버스 -->
+      <div id="track-canvas-wrap" style="flex:1;overflow:auto;background:var(--bg3);position:relative;padding:24px;">
+        <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:20;">
+          <button onclick="zoomTrack(-0.15)" style="width:26px;height:26px;border-radius:6px;border:0.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:14px;">−</button>
+          <button onclick="zoomTrack(0)" style="width:26px;height:26px;border-radius:6px;border:0.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:10px;">1:1</button>
+          <button onclick="zoomTrack(0.15)" style="width:26px;height:26px;border-radius:6px;border:0.5px solid var(--bd2);background:var(--bg);cursor:pointer;font-size:14px;">+</button>
+        </div>
+        <div id="track-tree" style="position:relative;transform-origin:top left;transition:transform 0.15s;"></div>
+      </div>
+      <!-- 홈 기능 패널 -->
+      <div id="track-home-panel" style="display:none;width:320px;flex-shrink:0;flex-direction:column;background:var(--bg);border-left:0.5px solid var(--bd);overflow:hidden;">
+        <div style="padding:8px 12px;border-bottom:0.5px solid var(--bd);display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex-shrink:0;">
+          <span style="font-size:11px;color:var(--ink3);">표시</span>
+          <div id="track-panel-checks" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        </div>
+        <div id="track-home-widgets" style="flex:1;overflow-y:auto;padding:12px;"></div>
+      </div>
+      <!-- 우측 메모 패널(레거시) -->
+      <div id="track-memo-panel" style="display:none;width:260px;flex-shrink:0;flex-direction:column;background:var(--bg);border-left:0.5px solid var(--bd);">
+        <div style="padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--bd);flex-shrink:0;">
+          <span id="track-memo-title" style="font-size:12px;font-weight:500;color:var(--ink);"></span>
+          <button onclick="closeTrackMemo()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--ink3);">✕</button>
+        </div>
+        <div style="padding:10px 14px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+          <!-- 모드별 도형 이름 -->
+          <div id="track-mode-name-wrap" style="display:none;">
+            <div style="font-size:10px;color:var(--ink3);margin-bottom:3px;" id="track-mode-name-label"></div>
+            <input id="track-mode-name-input" placeholder="이 모드에서 표시할 이름" style="width:100%;font-size:12px;padding:6px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);font-family:inherit;background:var(--bg);color:var(--ink);" oninput="saveTrackModeName()"/>
+          </div>
+          <textarea id="track-memo-text" placeholder="메모..." style="width:100%;font-size:12px;padding:8px;border:0.5px solid var(--bd2);border-radius:var(--r);background:var(--bg);color:var(--ink);font-family:inherit;resize:none;height:100px;" oninput="saveTrackMemo()"></textarea>
+          <!-- 스티커 -->
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:2px;">스티커</div>
+          <div id="track-sticker-list" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <div style="display:flex;gap:4px;">
+            <input id="track-sticker-input" placeholder="스티커 텍스트" style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);font-family:inherit;"/>
+            <input type="color" id="track-sticker-color" value="#f0e8a8" style="width:28px;height:28px;border:none;border-radius:4px;padding:2px;cursor:pointer;"/>
+            <button onclick="addTrackSticker()" style="font-size:11px;padding:4px 8px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;font-family:inherit;">+</button>
+          </div>
+          <!-- 링크 -->
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:2px;">링크</div>
+          <div id="track-link-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+          <div style="display:flex;gap:4px;">
+            <input id="track-link-input" placeholder="https://..." style="flex:1;font-size:11px;padding:4px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);font-family:inherit;"/>
+            <button onclick="addTrackLink()" style="font-size:11px;padding:4px 8px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;font-family:inherit;">+</button>
+          </div>
+          <!-- 태그 선택 -->
+          <div style="font-size:11px;color:var(--ink3);margin-bottom:2px;">태그</div>
+          <div id="track-tag-select" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+          <!-- 도형 모양 -->
+          <div style="font-size:11px;color:var(--ink3);margin:6px 0 2px;">도형</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="setTrackShape('rounded')" id="track-shape-rounded" style="flex:1;font-size:11px;padding:5px;border-radius:99px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;font-family:inherit;">◯ 둥근</button>
+            <button onclick="setTrackShape('rect')" id="track-shape-rect" style="flex:1;font-size:11px;padding:5px;border-radius:4px;border:1.5px solid var(--bd2);background:transparent;cursor:pointer;font-family:inherit;">□ 각진</button>
+          </div>
+          <!-- 삭제 -->
+          <button onclick="deleteTrackNode()" style="font-size:11px;padding:6px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);font-family:inherit;margin-top:4px;">삭제</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 연결선 에디터 팝업 -->
+  <div id="track-edge-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:500;align-items:center;justify-content:center;" onclick="closeTrackEdgeEditor()">
+    <div style="background:var(--bg);border-radius:12px;padding:20px;width:260px;box-shadow:0 4px 24px rgba(0,0,0,0.12);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">연결선 설정</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">라벨 (Y/N/X 등)</div>
+      <input id="edge-edit-label" class="sinput" placeholder="라벨 (선택)" style="margin-bottom:10px;"/>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" id="edge-edit-dashed" style="width:14px;height:14px;"/>
+        점선으로 (하위 도형 투명하게)
+      </label>
+      <div style="display:flex;gap:8px;justify-content:space-between;">
+        <button onclick="deleteTrackEdge()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:1px solid #f0a8a8;background:transparent;cursor:pointer;color:#c07070;font-family:inherit;">삭제</button>
+        <div style="display:flex;gap:6px;">
+          <button onclick="closeTrackEdgeEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
+          <button onclick="saveTrackEdgeEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 태그 에디터 팝업 -->
+  <div id="track-tag-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:500;align-items:center;justify-content:center;" onclick="closeTrackTagEditor()">
+    <div style="background:var(--bg);border-radius:12px;padding:20px;width:280px;box-shadow:0 4px 24px rgba(0,0,0,0.12);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:14px;">태그 편집</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">이름</div>
+      <input id="tag-edit-name" class="sinput" style="margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">색상</div>
+      <input type="color" id="tag-edit-color" style="width:100%;height:36px;border:none;border-radius:8px;cursor:pointer;margin-bottom:14px;"/>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeTrackTagEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
+        <button onclick="saveTrackTagEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 스티커 층 에디터 팝업 -->
+  <div id="track-sticker-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:500;align-items:center;justify-content:center;" onclick="closeStickerEditor()">
+    <div style="background:var(--bg);border-radius:12px;padding:20px;width:280px;box-shadow:0 4px 24px rgba(0,0,0,0.12);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:14px;">스티커 층 설정</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">이름</div>
+      <input id="sticker-edit-name" class="sinput" style="margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">색상</div>
+      <input type="color" id="sticker-edit-color" style="width:100%;height:36px;border:none;border-radius:8px;cursor:pointer;margin-bottom:14px;"/>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="closeStickerEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
+        <button onclick="saveStickerEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 목표 에디터 팝업 -->
+  <div id="track-goal-editor" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.25);z-index:500;align-items:center;justify-content:center;" onclick="closeTrackGoalEditor()">
+    <div style="background:var(--bg);border-radius:12px;padding:20px;width:280px;box-shadow:0 4px 24px rgba(0,0,0,0.12);" onclick="event.stopPropagation()">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:14px;">목표</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">목표 내용</div>
+      <input id="goal-edit-text" class="sinput" placeholder="예: 영상 10개 발행" style="margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">시작일</div>
+      <input type="date" id="goal-edit-start" class="sinput" style="margin-bottom:10px;"/>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px;">마감일</div>
+      <input type="date" id="goal-edit-date" class="sinput" style="margin-bottom:12px;"/>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" id="goal-edit-active" style="width:14px;height:14px;"/>
+        홈에 활성화 (한 번에 하나만)
+      </label>
+      <div style="display:flex;gap:8px;justify-content:space-between;">
+        <button onclick="deleteTrackGoal()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:1px solid #f0a8a8;background:transparent;cursor:pointer;color:#c07070;font-family:inherit;">삭제</button>
+        <div style="display:flex;gap:6px;">
+          <button onclick="closeTrackGoalEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink);font-family:inherit;">취소</button>
+          <button onclick="saveTrackGoalEditor()" style="font-size:12px;padding:7px 14px;border-radius:var(--r);border:none;background:#5c4f47;color:#fff;cursor:pointer;font-family:inherit;">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="page-settings" class="page">
     <div class="card">
       <div class="clabel">오늘의 말</div>
@@ -434,6 +615,10 @@ body{background:#f0ebe3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',
       <div id="tb-blocks"></div>
       <button class="btn" onclick="addTimebarBlock()" style="width:100%;margin-top:6px;">+ 시간대 추가</button>
       <button class="btn btn-acc" onclick="saveTimebarSettings()" style="width:100%;margin-top:6px;">저장</button>
+      <div class="divider"></div>
+      <div class="clabel">추적 태그 설정</div>
+      <div id="track-tag-settings"></div>
+      <button class="btn" onclick="addTrackTag()" style="width:100%;margin-top:6px;">+ 태그 추가</button>
     </div>
   </div>
 
@@ -458,6 +643,12 @@ const TK=()=>{const d=kstNow();return d.getUTCFullYear()+'-'+String(d.getUTCMont
 const MK=()=>{const d=kstNow();return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');};
 const RIGHT_PROJS=['링크닷 실험','닷슬래시 업무'];
 const isRight=n=>RIGHT_PROJS.includes(n);
+
+// === 세상에 내보내기(ship) 상태 ===
+const SHIP_COLORS={red:'#e8645a',blue:'#3d8bd6',yellow:'#f0c948',orange:'#e89030'};
+const SHIP_LABELS={red:'내보냄',blue:'빠르게 내보냄',yellow:'시스템화 시도',orange:'시스템 도움됨'};
+const SHIP_CYCLE=[null,'red','blue','yellow'];
+function isShipped(h){return !!(h&&h.ship&&SHIP_COLORS[h.ship]);}
 
 let S={
   words:["작게 시도하는 것이 안 하는 것보다 낫다.","오늘의 실험이 내일의 방향이다.","완벽하지 않아도 일단 그어라."],
@@ -504,6 +695,7 @@ async function loadFromDB(){
     renderDateStreak();renderGoals();renderLegend();renderTallies();renderTodos();renderElist();renderSleepButtons();renderExerciseBtn();renderEnergyChecks();renderEnergyChecks();renderHomeTimebar();
     renderHomeTimebar();
     startRealtimeSync();
+    renderTrackFilterBtns();
   }catch(e){console.log('DB load error',e);}
 }
 
@@ -549,14 +741,16 @@ function startRealtimeSync(){
 }
 
 function goPage(p){
+  if(typeof trackPanelAllHome==='function')trackPanelAllHome();
   document.querySelectorAll('.page').forEach(el=>{
     el.classList.remove('on');
     if(el.id==='page-exp') el.style.display='none';
+    if(el.id==='page-track') el.style.display='none';
   });
   // 타임바 홈에서만 표시
   const tbEl=document.getElementById('home-timebar-fixed');
   if(tbEl)tbEl.style.display=p==='home'?'flex':'none';
-  document.querySelectorAll('.nb').forEach((b,i)=>{b.classList.toggle('on',['home','log','exp','soul'][i]===p);});
+  document.querySelectorAll('.nb').forEach((b,i)=>{b.classList.toggle('on',['track','soul','log','exp','home'][i]===p);});
   const settingsBtn=document.getElementById('settings-icon-btn');
   if(settingsBtn)settingsBtn.style.color=p==='settings'?'#5c4f47':'var(--ink3)';
   const pageEl=document.getElementById('page-'+p);
@@ -568,6 +762,15 @@ function goPage(p){
   if(p==='log')renderLog();
   if(p==='exp'){renderExpEnergyWeek();expInitOutlineEvents();renderTreeVis();const gi=document.getElementById('gogo-ideas');if(gi&&S.gogoIdeas)gi.value=S.gogoIdeas;const fm=document.getElementById('exp-free-memo');if(fm&&S.expFreeMemo)fm.value=S.expFreeMemo;}
   if(p==='soul')renderSoulPage();
+  if(p==='track'){
+    const trackEl=document.getElementById('page-track');
+    if(trackEl)trackEl.style.display='flex';
+    renderTrackPage();
+    renderTrackFilterBtns();
+    const hb=document.getElementById('track-homepanel-btn');
+    if(hb&&S.trackPanel){hb.style.background=S.trackPanel.open?'#5c4f47':'transparent';hb.style.color=S.trackPanel.open?'#fff':'var(--ink3)';}
+    syncTrackPanel();renderTrackPanelChecks();
+  }
   if(p==='settings')renderSettings();
 }
 
@@ -619,6 +822,17 @@ function makeTallyGroupSVG(items,scale,onHover,onLeave,onClickStroke){
     const sw=h.thick?3.2:2;
     const g=document.createElementNS('http://www.w3.org/2000/svg','g');
     g.style.cursor='pointer';
+    // 세상에 내보낸 탈리는 외곽선 색을 깔아준다
+    const shipCol=isShipped(h)?SHIP_COLORS[h.ship]:null;
+    if(shipCol){
+      const ol=document.createElementNS('http://www.w3.org/2000/svg','line');
+      if(j<4){ol.setAttribute('x1',''+xPos[j]);ol.setAttribute('y1','5');ol.setAttribute('x2',''+xPos[j]);ol.setAttribute('y2','55');}
+      else{ol.setAttribute('x1','3');ol.setAttribute('y1','50');ol.setAttribute('x2','53');ol.setAttribute('y2','10');}
+      ol.setAttribute('stroke',shipCol);
+      ol.setAttribute('stroke-width',''+(sw+1.5));
+      ol.setAttribute('stroke-linecap','round');
+      g.appendChild(ol);
+    }
     const line=document.createElementNS('http://www.w3.org/2000/svg','line');
     if(j<4){
       line.setAttribute('x1',''+xPos[j]);line.setAttribute('y1','5');
@@ -714,6 +928,29 @@ function renderTallies(){
   const filled=hs.filter(h=>h);
   const mins=filled.reduce((a,h)=>a+(h.thick?30:20),0);
   document.getElementById('tstats').textContent='오늘 '+filled.length+'번 · '+mins+'분';
+  renderShipStatus();
+}
+
+function renderShipStatus(){
+  const todayEl=document.getElementById('ship-today');
+  if(!todayEl)return;
+  const todayShip=(S.tallies[TK()]||[]).filter(h=>isShipped(h)).length;
+  todayEl.textContent=todayShip;
+  const mk=MK();
+  let cum=0;
+  Object.keys(S.tallies||{}).filter(k=>k.startsWith(mk)).forEach(k=>{cum+=(S.tallies[k]||[]).filter(h=>isShipped(h)).length;});
+  const cumEl=document.getElementById('ship-cum');if(cumEl)cumEl.textContent='목표 '+cum;
+  const goalEl=document.getElementById('ship-goal');
+  const perEl=document.getElementById('ship-period');
+  const md=s=>s?((+s.slice(5,7))+'/'+(+s.slice(8,10))):'';
+  const activeGoal=(S.trackGoals||[]).find(g=>g.active);
+  if(activeGoal){
+    if(goalEl)goalEl.textContent=activeGoal.text||'(목표)';
+    if(perEl)perEl.textContent=(activeGoal.start||activeGoal.date)?((md(activeGoal.start)||'?')+' ~ '+(md(activeGoal.date)||'?')):'기간 미정';
+  } else {
+    if(goalEl)goalEl.textContent=(S.goals&&S.goals.month)?S.goals.month:'이달 목표 미설정';
+    if(perEl)perEl.textContent='이번 달 ('+mk+')';
+  }
 }
 
 function toggleArchive(){
@@ -785,8 +1022,10 @@ function renderTodos(){
     chk.onclick=e=>{e.stopPropagation();completeTodo(i);};
     const tp=t.proj?S.projects.find(x=>x.name===t.proj):null;
     const projDot=document.createElement('div');
-    projDot.style.cssText='width:10px;height:10px;border-radius:50%;flex-shrink:0;cursor:pointer;border:1px solid var(--bd2);background:'+(tp?tp.color:'transparent')+';';
-    projDot.onclick=e=>{e.stopPropagation();openModal(pi=>{S.todos[i].proj=S.projects[pi].name;sv();renderTodos();});};
+    const tsc=isShipped(t)?SHIP_COLORS[t.ship]:null; // 이 할일의 내보냄 색
+    projDot.style.cssText='width:14px;height:14px;border-radius:50%;flex-shrink:0;cursor:pointer;box-sizing:border-box;border:2px solid '+(tp?tp.color:'var(--bd2)')+';background:'+(tsc||'transparent')+';';
+    projDot.title='클릭: 세상에 내보냄 표시\n없음→빨강→파랑→노랑 (테두리=프로젝트색)';
+    projDot.onclick=e=>{e.stopPropagation();const idx=SHIP_CYCLE.indexOf(isShipped(t)?t.ship:null);S.todos[i].ship=SHIP_CYCLE[(idx+1)%SHIP_CYCLE.length];sv();renderTodos();};
     const txt=document.createElement('input');
     txt.type='text';txt.value=t.text;
     txt.style.cssText='border:none;background:transparent;outline:none;font-family:inherit;font-size:'+(i===0?'14px':'13px')+';font-weight:'+(i===0?'500':'400')+';color:var(--ink);flex:1;min-width:0;cursor:text;';
@@ -831,6 +1070,14 @@ if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.trackNodes)S.trackNodes=[];
+if(!S.trackEdges)S.trackEdges=[];
+if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+if(!S.trackTags)S.trackTags=[{name:'사업',color:'#f0a8a8'},{name:'실험',color:'#8ed4b0'},{name:'학습',color:'#a8c8f0'},{name:'루틴',color:'#f0e8a8'}];
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
 if(!S.timebar)S.timebar={
@@ -865,12 +1112,12 @@ if(!S.timebar)S.timebar={
 function completeTodo(i){
   const t=S.todos[i];
   if(t.proj){
-    GT().push({id:S.nid++,proj:t.proj,thick:t.thick,note:t.text,energy:null,time:new Date().toISOString()});
+    GT().push({id:S.nid++,proj:t.proj,thick:t.thick,note:t.text,energy:null,ship:t.ship||null,time:new Date().toISOString()});
     S.todos.splice(i,1);sv();renderTodos();renderTallies();renderElist();
   } else {
     openModal(pi=>{
       const p=S.projects[pi];
-      GT().push({id:S.nid++,proj:p.name,thick:t.thick,note:t.text,energy:null,time:new Date().toISOString()});
+      GT().push({id:S.nid++,proj:p.name,thick:t.thick,note:t.text,energy:null,ship:t.ship||null,time:new Date().toISOString()});
       S.todos.splice(i,1);sv();renderTodos();renderTallies();renderElist();
     });
   }
@@ -1107,12 +1354,106 @@ function toggleLogDaily(){
 }
 function renderLog(){
   if(!S.viewMonth)S.viewMonth=MK();
+  renderShipDots();
   renderWeekChart();
   renderMonthly();
   // 누적 토글 열려있으면 갱신
   const moContent=document.getElementById('mo-content');
   if(moContent&&moContent.style.display!=='none')renderMonthlyContent();
   renderLogContent();
+}
+let _shipOffset=0;
+function changeShipWeeks(delta){_shipOffset+=delta*14;if(_shipOffset>0)_shipOffset=0;renderShipDots();}
+function renderShipDots(){
+  const el=document.getElementById('ship-dots');if(!el)return;
+  const end=new Date();end.setDate(end.getDate()+_shipOffset);
+  const days=[];
+  for(let i=13;i>=0;i--){const d=new Date(end);d.setDate(end.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const dayData=days.map(k=>(S.tallies[k]||[]).filter(h=>isShipped(h)));
+  const dayMins=days.map(k=>(S.tallies[k]||[]).reduce((a,h)=>a+(h?(h.thick?30:20):0),0));
+  const maxN=Math.max(5,...dayData.map(a=>a.length));
+  const DOT=14,GAP=4,COLW=30,STACKH=maxN*(DOT+GAP),LABELH=32;
+  const dayNames=['일','월','화','수','목','금','토'];
+  const lblEl=document.getElementById('ship-range-label');
+  if(lblEl)lblEl.textContent='🌺 '+days[0].slice(5).replace('-','.')+' ~ '+days[13].slice(5).replace('-','.')+(_shipOffset===0?' · 최근':'');
+  el.innerHTML='';
+  const tot=dayData.reduce((a,d)=>a+d.length,0);
+  if(tot===0){el.innerHTML='<div style="font-size:12px;color:var(--ink3);font-style:italic;padding:8px 0;">이 기간엔 내보낸 표시가 없어 (할일 동그라미를 칠하고 완료하면 표시돼)</div>';return;}
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;align-items:flex-end;gap:2px;padding-bottom:2px;width:max-content;';
+  // y축 숫자
+  const yax=document.createElement('div');
+  yax.style.cssText='display:flex;flex-direction:column;height:'+STACKH+'px;margin-right:4px;margin-bottom:'+LABELH+'px;flex-shrink:0;';
+  for(let L=maxN;L>=1;L--){
+    const l=document.createElement('div');
+    l.style.cssText='height:'+(DOT+GAP)+'px;font-size:10px;color:var(--ink3);display:flex;align-items:center;justify-content:flex-end;width:14px;';
+    l.textContent=L;yax.appendChild(l);
+  }
+  wrap.appendChild(yax);
+  // 컬럼 영역(모눈 그리드 배경)
+  const plot=document.createElement('div');
+  plot.style.cssText='display:flex;align-items:flex-end;gap:2px;position:relative;';
+  const grid=document.createElement('div');
+  grid.style.cssText='position:absolute;left:0;right:0;bottom:'+LABELH+'px;height:'+STACKH+'px;background:repeating-linear-gradient(to top, transparent 0, transparent '+(DOT+GAP-1)+'px, var(--bd) '+(DOT+GAP-1)+'px, var(--bd) '+(DOT+GAP)+'px);opacity:0.45;pointer-events:none;';
+  plot.appendChild(grid);
+  days.forEach((k,di)=>{
+    const col=document.createElement('div');
+    col.style.cssText='display:flex;flex-direction:column;align-items:center;gap:4px;width:'+COLW+'px;flex-shrink:0;position:relative;z-index:1;';
+    const stack=document.createElement('div');
+    stack.style.cssText='display:flex;flex-direction:column;align-items:center;height:'+STACKH+'px;';
+    for(let L=maxN;L>=1;L--){
+      const cell=document.createElement('div');
+      cell.style.cssText='height:'+(DOT+GAP)+'px;display:flex;align-items:center;justify-content:center;';
+      const h=dayData[di][L-1];
+      if(h){
+        const dot=document.createElement('div');
+        const canToggle=(h.ship==='yellow'||h.ship==='orange');
+        dot.style.cssText='width:'+DOT+'px;height:'+DOT+'px;border-radius:50%;background:'+SHIP_COLORS[h.ship]+';cursor:'+(canToggle?'pointer':'default')+';';
+        dot.title=(h.note||h.proj||'(이름없음)')+(canToggle?'\n(클릭: 노랑↔주황)':'');
+        if(canToggle)dot.onclick=()=>{h.ship=h.ship==='yellow'?'orange':'yellow';sv();renderShipDots();};
+        cell.appendChild(dot);
+      }
+      stack.appendChild(cell);
+    }
+    col.appendChild(stack);
+    const d=new Date(k+'T12:00:00');
+    const isToday=k===TK();
+    const lab=document.createElement('div');
+    lab.style.cssText='font-size:12px;color:'+(isToday?'var(--ink)':'var(--ink3)')+';text-align:center;line-height:1.25;font-weight:'+(isToday?'600':'400')+';height:'+LABELH+'px;display:flex;flex-direction:column;justify-content:center;';
+    lab.innerHTML=parseInt(k.slice(8),10)+'<br>'+dayNames[d.getDay()];
+    col.appendChild(lab);
+    plot.appendChild(col);
+  });
+  // 검은 선: 그날 총 탈리분 (1칸=40분, 비클릭/정보없음/0이면 바닥)
+  const pitch=DOT+GAP;
+  const plotW=days.length*COLW+(days.length-1)*2;
+  const svgns='http://www.w3.org/2000/svg';
+  const lineSvg=document.createElementNS(svgns,'svg');
+  lineSvg.setAttribute('width',plotW);lineSvg.setAttribute('height',STACKH);
+  lineSvg.style.cssText='position:absolute;left:0;bottom:'+LABELH+'px;pointer-events:none;overflow:visible;z-index:5;';
+  let pts='';
+  days.forEach((k,i)=>{
+    const M=dayMins[i];
+    let yb=(M/40-0.5)*pitch; yb=Math.max(0,Math.min(STACKH,yb));
+    const x=i*(COLW+2)+COLW/2, y=STACKH-yb;
+    pts+=x+','+y+' ';
+  });
+  const pl=document.createElementNS(svgns,'polyline');
+  pl.setAttribute('points',pts.trim());
+  pl.setAttribute('fill','none');pl.setAttribute('stroke','var(--ink)');pl.setAttribute('stroke-width','0.4');pl.setAttribute('stroke-linejoin','round');pl.setAttribute('stroke-linecap','round');
+  lineSvg.appendChild(pl);
+  plot.appendChild(lineSvg);
+  wrap.appendChild(plot);
+  // 오른쪽 분(分) 축: 1,2,3,4,5 ↔ 40,80,120,160,200분
+  const ryax=document.createElement('div');
+  ryax.style.cssText='display:flex;flex-direction:column;height:'+STACKH+'px;margin-left:4px;margin-bottom:'+LABELH+'px;flex-shrink:0;';
+  for(let L=maxN;L>=1;L--){
+    const l=document.createElement('div');
+    l.style.cssText='height:'+pitch+'px;font-size:9px;color:var(--ink3);display:flex;align-items:center;justify-content:flex-start;width:30px;';
+    l.textContent=(L*40)+'분';ryax.appendChild(l);
+  }
+  wrap.appendChild(ryax);
+  el.appendChild(wrap);
 }
 function renderLogContent(){
   const strip=document.getElementById('log-pstrip');if(!strip)return;strip.innerHTML='';
@@ -1336,6 +1677,7 @@ function renderMonthlyContent(){
 
 function renderSettings(){
   renderTimebarSettings();
+  renderTrackTagSettings();
   document.getElementById('sg-month').value=S.goals.month;
   document.getElementById('sg-week').value=S.goals.week;
   document.getElementById('sg-today').value=S.goals.today;
@@ -1477,6 +1819,14 @@ if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.trackNodes)S.trackNodes=[];
+if(!S.trackEdges)S.trackEdges=[];
+if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+if(!S.trackTags)S.trackTags=[{name:'사업',color:'#f0a8a8'},{name:'실험',color:'#8ed4b0'},{name:'학습',color:'#a8c8f0'},{name:'루틴',color:'#f0e8a8'}];
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
 if(!S.timebar)S.timebar={
@@ -1588,6 +1938,13 @@ function zoomTree(delta){
   else _treeScale=Math.min(2,Math.max(0.3,_treeScale+delta));
   const vis=document.getElementById('exp-tree-vis');
   if(vis) vis.style.transform=`scale(${_treeScale})`;
+}
+let _trackScale=1;
+function applyTrackScale(){const t=document.getElementById('track-tree');if(t)t.style.transform='scale('+_trackScale+')';}
+function zoomTrack(delta){
+  if(delta===0)_trackScale=1;
+  else _trackScale=Math.min(2,Math.max(0.3,_trackScale+delta));
+  applyTrackScale();
 }
 
 function handleTreeWheel(e){
@@ -2117,6 +2474,1021 @@ function showEmojiPop(emoji){
     },700);
   });
 }
+// ===== 추적 탭 =====
+let _trackOpenIds = new Set(); // 열린 메모들
+let _trackConnectFrom = null;
+let _trackEditMode = false;
+let _trackGoalPlacing = false;
+let _editGoalId = null;
+let _compressPlacing = false;
+
+function renderTrackPage(){
+  renderTrackFilterBtns();
+  if(!S.trackNodes)S.trackNodes=[];
+  if(!S.trackEdges)S.trackEdges=[];
+if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+  if(!S.trackTags)S.trackTags=[
+    {name:'사업',color:'#f0a8a8'},
+    {name:'실험',color:'#8ed4b0'},
+    {name:'학습',color:'#a8c8f0'},
+    {name:'루틴',color:'#f0e8a8'}
+  ];
+  renderTrackFilterBtns();
+  renderTrackTree();
+}
+
+function toggleTrackEditMode(){
+  _trackEditMode=!_trackEditMode;
+  const btn=document.getElementById('track-edit-btn');
+  const tools=document.getElementById('track-edit-tools');
+  if(btn){btn.textContent=_trackEditMode?'✏️ 작성중':'👁 읽기';btn.style.background=_trackEditMode?'#5c4f47':'transparent';btn.style.color=_trackEditMode?'#fff':'var(--ink3)';}
+  if(tools)tools.style.display=_trackEditMode?'flex':'none';
+  _trackSelectedId=null;
+  renderTrackTree();
+}
+
+function renderTrackFilterBtns(){
+  const el=document.getElementById('track-filter-btns');
+  if(!el)return;
+  el.innerHTML='';
+  (S.trackTags||[]).forEach((tag,i)=>{
+    const btn=document.createElement('button');
+    const active=tag.visible!==false;
+    btn.style.cssText=`font-size:10px;padding:3px 10px;border-radius:99px;border:1.5px solid ${tag.color};background:${active?tag.color:'transparent'};color:${active?'#fff':'var(--ink3)'};cursor:pointer;font-family:inherit;`;
+    btn.textContent=tag.name;
+    btn.onclick=()=>{tag.visible=!active;sv();renderTrackFilterBtns();renderTrackTree();};
+    btn.addEventListener('dblclick',e=>{
+      e.stopPropagation();
+      openTrackTagEditor(i);
+    });
+    el.appendChild(btn);
+  });
+}
+
+function renderTrackTree(){
+  const tree=document.getElementById('track-tree');
+  if(!tree)return;
+  renderStickerBtn();
+  const _cw=document.getElementById('track-canvas-wrap');
+  if(_cw)_cw.style.background=((S.stickerMode||0)!==0)?'#ffffff':'var(--bg3)';
+  tree.innerHTML='';
+  if(!S.trackNodes||!S.trackNodes.length){
+    if(_trackEditMode)tree.innerHTML='<div style="font-size:13px;color:var(--ink3);padding:20px;font-style:italic;">+ 도형 버튼으로 시작</div>';
+    return;
+  }
+
+  const NODE_W=146, NODE_H=44, H_GAP=40, V_GAP=48, OPEN_W=280;
+  const positions={};
+  const realH={}; // 렌더 후 실측한 박스 높이 (있으면 추정 대신 사용)
+
+  function expandH(nid){
+    if(!_trackOpenIds.has(nid))return 0;
+    const n=S.trackNodes.find(x=>x.id===nid);if(!n)return 0;
+    let h=_trackEditMode?52:8;
+    if(n.memo)h+=Math.min(120,Math.ceil(n.memo.split('\n').length*20+n.memo.length/30*18));
+    if(n.links&&n.links.length)h+=n.links.length*22+8;
+    if(_trackEditMode)h+=36; // 링크 입력
+    return h+16;
+  }
+  function nodeH(nid){return realH[nid]!=null?realH[nid]:NODE_H+expandH(nid);}
+  // 도형 위에 올라가는 설명글(+위버튼) 높이 추정 — 레이아웃 간격용
+  function capLines(node){ // 캡션 줄 수 추정
+    if(!node.sublabel) return _trackEditMode?1:0;
+    const cpl=Math.max(8,Math.floor(nW(node.id)/6.2));
+    return node.sublabel.split('\n').reduce((a,l)=>a+Math.max(1,Math.ceil((l.length||1)/cpl)),0);
+  }
+  function aboveH(node){ // 박스 위(캡션+위버튼)가 차지하는 높이
+    let h=capLines(node)*14;
+    if(capLines(node)>0) h+=10;
+    if(_trackEditMode) h+=14; // 위에 끼워넣기 버튼
+    return h;
+  }
+  function nW(nid){return _trackOpenIds.has(nid)?OPEN_W:NODE_W;}
+  function kidsOf(nid){const n=S.trackNodes.find(x=>x.id===nid);if(n&&n.region&&n.region.collapsed)return [];return S.trackNodes.filter(c=>c.parentId===nid);}
+  function calcW(nid){
+    const ch=kidsOf(nid);
+    if(!ch.length)return nW(nid)+H_GAP;
+    return Math.max(nW(nid)+H_GAP,ch.reduce((s,c)=>s+calcW(c.id),0));
+  }
+  function place(node,x,boxTop){
+    const ch=kidsOf(node.id);
+    if(!ch.length){
+      positions[node.id]={x:x+(calcW(node.id)-nW(node.id))/2, y:boxTop};
+      return;
+    }
+    const maxChildAbove=Math.max(0,...ch.map(aboveH));
+    const childTop=boxTop+nodeH(node.id)+(_trackEditMode?14:0)+V_GAP+maxChildAbove;
+    let cx=x;
+    ch.forEach(c=>{place(c,cx,childTop);cx+=calcW(c.id);});
+    const fcx=positions[ch[0].id].x+nW(ch[0].id)/2;
+    const lcx=positions[ch[ch.length-1].id].x+nW(ch[ch.length-1].id)/2;
+    positions[node.id]={x:(fcx+lcx)/2-nW(node.id)/2, y:boxTop};
+  }
+  function doLayout(){
+    for(const k in positions)delete positions[k];
+    const roots=S.trackNodes.filter(n=>!n.parentId);
+    const topPad=Math.max(24,...roots.map(aboveH));
+    let rx=0;
+    roots.forEach(r=>{
+      place(r,rx,topPad);
+      rx+=calcW(r.id)+H_GAP;
+    });
+    const vals=Object.values(positions);
+    const maxX=vals.length?Math.max(...S.trackNodes.map(n=>positions[n.id]?positions[n.id].x+nW(n.id):0))+60:400;
+    const maxY=vals.length?Math.max(...S.trackNodes.map(n=>positions[n.id]?positions[n.id].y+nodeH(n.id)+(_trackEditMode?14:0):0))+120:300;
+    return {maxX,maxY};
+  }
+  let {maxX,maxY}=doLayout();
+  tree.style.cssText=`position:relative;width:${maxX}px;height:${maxY}px;transform-origin:top left;transition:transform 0.15s;transform:scale(${_trackScale});`;
+
+  // SVG
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.style.cssText=`position:absolute;top:0;left:0;width:${maxX}px;height:${maxY}px;pointer-events:none;overflow:visible;`;
+  // 연결선은 노드 렌더 후 실제 박스 위치를 측정해서 그린다 (함수 하단)
+  const boxEls={}, wrapEls={}, taEls=[];
+
+  // 노드
+  S.trackNodes.forEach(node=>{
+    const pos=positions[node.id];if(!pos)return;
+    const tag=S.trackTags.find(t=>t.name===node.tag);
+    const _sm=stickerModes()[S.stickerMode||0];
+    const stickerOn=_sm.key!=='base';
+    let tagColor=tag?tag.color:'var(--bd2)';
+    if(stickerOn)tagColor='#b89a52';
+    const _hasSticker=stickerOn&&!!((node.stickers&&node.stickers[_sm.key])||'');
+    const boxBg=stickerOn?(_hasSticker?_sm.color:_mixWhite(_sm.color,0.62)):(tag?tag.color:'var(--bg)');
+    const txtColor='var(--ink)';
+    // 부모로부터의 구조선이 '점선(투명)'이면 흐리게
+    const isDashed=node.edgeStyle==='dashed-dim';
+    const visible=stickerOn?true:(!node.tag||!tag||(tag.visible!==false));
+    const isOpen=_trackOpenIds.has(node.id);
+    const isConnFrom=_trackConnectFrom===node.id;
+    const totalH=nodeH(node.id);
+
+    const wrap=document.createElement('div');
+    wrap.style.cssText=`position:absolute;left:${pos.x}px;top:${pos.y}px;width:${nW(node.id)}px;z-index:${isOpen?10:1};visibility:${visible?'visible':'hidden'};`;
+
+    const boxW=nW(node.id);
+    const isDiamond=node.shape==='diamond';
+    const diamondCol=isDiamond&&!isOpen;
+    const radius=node.shape==='rect'?'3px':(isDiamond?'10px':'999px');
+    const box=document.createElement('div');
+    box.style.cssText=`width:${boxW}px;min-height:${NODE_H}px;background:${boxBg};border:2px solid ${isConnFrom?'#f0a8a8':tagColor};border-radius:${radius};padding:0 14px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.05);box-sizing:border-box;visibility:${visible?'visible':'hidden'};opacity:${isDashed?0.4:1};overflow:${stickerOn?'visible':'hidden'};position:relative;`;
+    if(isOpen){box.style.borderRadius='14px';box.style.boxShadow='0 2px 10px rgba(0,0,0,0.14)';box.style.borderColor='#5c4f47';}
+    if(diamondCol){
+      box.style.border='none';box.style.boxShadow='none';box.style.borderRadius='0';
+      box.style.background=boxBg;
+      box.style.clipPath='polygon(50% 0,100% 50%,50% 100%,0 50%)';
+      box.style.padding='0 30px';
+      const ds=document.createElementNS('http://www.w3.org/2000/svg','svg');
+      ds.setAttribute('width',boxW);ds.setAttribute('height',NODE_H);ds.setAttribute('viewBox','0 0 '+boxW+' '+NODE_H);
+      ds.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:2;';
+      const dp=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      dp.setAttribute('points',(boxW/2)+',2 '+(boxW-2)+','+(NODE_H/2)+' '+(boxW/2)+','+(NODE_H-2)+' 2,'+(NODE_H/2));
+      dp.setAttribute('fill','none');dp.setAttribute('stroke',isConnFrom?'#f0a8a8':tagColor);dp.setAttribute('stroke-width','2');dp.setAttribute('stroke-linejoin','round');
+      ds.appendChild(dp);box.appendChild(ds);
+    }
+
+    // 헤더 행 (이름)
+    const header=document.createElement('div');
+    header.style.cssText=`height:${NODE_H}px;display:flex;align-items:center;gap:6px;`;
+
+    const lbl=document.createElement('div');
+    const skey=stickerOn?_sm.key:null;
+    const getTxt=()=>stickerOn?((node.stickers&&node.stickers[skey])||''):(node.label||'');
+    const setTxt=v=>{const t=(v||'').trim();if(stickerOn){if(!node.stickers)node.stickers={};node.stickers[skey]=t;}else{node.label=t||'새 도형';}};
+    const _cur=getTxt();
+    const _emptyBase=(!stickerOn&&!_cur);
+    const _stickerEmpty=stickerOn&&!_cur;
+    const _disp=stickerOn?(_cur||('[ '+(node.label||'도형')+' ]')):(_cur||'새 도형');
+    const _lblCol=_stickerEmpty?'var(--ink3)':(_emptyBase?'var(--ink3)':txtColor);
+    lbl.style.cssText='flex:1;font-size:12px;font-weight:500;color:'+_lblCol+';outline:none;word-break:break-all;white-space:pre-wrap;line-height:1.4;'+(stickerOn?('text-align:center;min-height:'+NODE_H+'px;display:flex;align-items:center;justify-content:center;'):'');
+    lbl.textContent=_disp;
+
+    lbl.addEventListener('dblclick',e=>{
+      e.stopPropagation();e.preventDefault();
+      if(lbl.contentEditable==='true')return;
+      lbl.contentEditable='true';lbl.style.background='rgba(0,0,0,0.03)';lbl.style.color='var(--ink)';if(!getTxt())lbl.textContent='';lbl.focus();
+      const r=document.createRange();r.selectNodeContents(lbl);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+      const save=()=>{lbl.contentEditable='false';lbl.style.background='';setTxt(lbl.textContent);sv();renderTrackTree();};
+      lbl.addEventListener('blur',save,{once:true});
+      lbl.addEventListener('keydown',ev=>{if(ev.key==='Escape'){lbl.blur();}},{once:true});
+    });
+
+    header.appendChild(lbl);
+    box.appendChild(header);
+
+    box.addEventListener('click',e=>{
+      e.stopPropagation();
+      if(lbl.contentEditable==='true')return;
+      if(_compressPlacing){ makeRegion(node.id); return; }
+      if(node.region&&node.region.collapsed){ node.region.collapsed=false; sv(); renderTrackTree(); return; }
+      if(_trackGoalPlacing){ attachTrackGoal(node.id); return; }
+      if(_trackConnectFrom==='__waiting__'){_trackConnectFrom=node.id;renderTrackTree();return;}
+      if(_trackConnectFrom&&_trackConnectFrom!==node.id){
+        if(!S.trackEdges)S.trackEdges=[];
+if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+        S.trackEdges.push({id:Date.now(),from:_trackConnectFrom,to:node.id});
+        _trackConnectFrom=null;const cb=document.getElementById('track-connect-btn');
+        if(cb){cb.style.background='transparent';cb.style.color='var(--ink3)';}
+        sv();renderTrackTree();return;
+      }
+      if(isOpen)_trackOpenIds.delete(node.id);else _trackOpenIds.add(node.id);
+      renderTrackTree();
+    });
+    // 작성모드(또는 스티커 모드): lbl 클릭하면 글자 편집
+    lbl.addEventListener('click',e=>{
+      if(!_trackEditMode&&!stickerOn)return;
+      e.stopPropagation();
+      if(lbl.contentEditable==='true')return;
+      lbl.contentEditable='true';lbl.style.background='rgba(0,0,0,0.03)';lbl.style.color='var(--ink)';if(!getTxt())lbl.textContent='';lbl.focus();
+      const r=document.createRange();r.selectNodeContents(lbl);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+      const save=()=>{lbl.contentEditable='false';lbl.style.background='';setTxt(lbl.textContent);sv();renderTrackTree();};
+      lbl.addEventListener('blur',save,{once:true});
+      lbl.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();lbl.blur();}if(ev.key==='Escape'){lbl.blur();}},{once:true});
+    });
+
+    // 펼쳐진 내용
+    if(isOpen){
+      const body=document.createElement('div');
+      body.style.cssText='padding:0 0 10px 16px;';
+      body.onclick=e=>e.stopPropagation();
+
+      if(_trackEditMode){
+        // 태그/도형/삭제
+        const btnRow=document.createElement('div');
+        btnRow.style.cssText='display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;padding-top:2px;';
+        (S.trackTags||[]).forEach(t=>{
+          const tb=document.createElement('button');const act=node.tag===t.name;
+          tb.style.cssText=`font-size:9px;padding:2px 8px;border-radius:99px;border:1px solid ${t.color};background:${act?t.color:'transparent'};color:${act?'#fff':'var(--ink3)'};cursor:pointer;font-family:inherit;`;
+          tb.textContent=t.name;tb.onclick=e=>{e.stopPropagation();node.tag=act?'':t.name;sv();renderTrackTree();};
+          btnRow.appendChild(tb);
+        });
+        [['◯','rounded'],['▭','rect'],['◇','diamond']].forEach(([s,shape])=>{
+          const act=(shape==='rounded')?(node.shape!=='rect'&&node.shape!=='diamond'):node.shape===shape;
+          const sb=document.createElement('button');
+          sb.style.cssText=`font-size:11px;padding:2px 7px;border-radius:4px;border:1px solid var(--bd2);background:${act?'#5c4f47':'transparent'};color:${act?'#fff':'var(--ink3)'};cursor:pointer;`;
+          sb.textContent=s;sb.onclick=e=>{e.stopPropagation();node.shape=shape;sv();renderTrackTree();};
+          btnRow.appendChild(sb);
+        });
+        const del=document.createElement('button');
+        del.style.cssText='font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid #f0a8a8;color:#c07070;background:transparent;cursor:pointer;font-family:inherit;margin-left:auto;';
+        del.textContent='삭제';del.onclick=e=>{e.stopPropagation();S.trackNodes=S.trackNodes.filter(n=>n.id!==node.id&&n.parentId!==node.id);S.trackEdges=(S.trackEdges||[]).filter(e=>e.from!==node.id&&e.to!==node.id);_trackOpenIds.delete(node.id);sv();renderTrackTree();};
+        btnRow.appendChild(del);body.appendChild(btnRow);
+        // 부모 변경
+        const moveRow=document.createElement('div');
+        moveRow.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+        const moveLbl=document.createElement('span');moveLbl.style.cssText='font-size:10px;color:var(--ink3);';moveLbl.textContent='위치:';
+        const sel=document.createElement('select');
+        sel.style.cssText='flex:1;font-size:11px;padding:3px 6px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--bg);color:var(--ink);font-family:inherit;';
+        const rootOpt=document.createElement('option');rootOpt.value='';rootOpt.textContent='루트 (최상위)';rootOpt.selected=!node.parentId;
+        sel.appendChild(rootOpt);
+        S.trackNodes.filter(n=>n.id!==node.id&&n.parentId!==node.id).forEach(n=>{
+          const opt=document.createElement('option');opt.value=n.id;opt.textContent=n.label||'새 도형';opt.selected=node.parentId===n.id;sel.appendChild(opt);
+        });
+        sel.onchange=e=>{e.stopPropagation();node.parentId=sel.value?Number(sel.value):null;sv();renderTrackTree();};
+        moveRow.appendChild(moveLbl);moveRow.appendChild(sel);
+        // 형제 좌우 순서
+        const sibs=S.trackNodes.filter(n=>n.parentId===node.parentId);
+        if(sibs.length>1){
+          [['◀',-1],['▶',1]].forEach(([t,d])=>{
+            const ob=document.createElement('button');
+            ob.style.cssText='font-size:10px;padding:3px 7px;border-radius:4px;border:0.5px solid var(--bd2);background:transparent;color:var(--ink3);cursor:pointer;font-family:inherit;';
+            ob.textContent=t;ob.title='형제 순서 이동';
+            ob.onclick=e=>{e.stopPropagation();moveTrackSibling(node.id,d);};
+            moveRow.appendChild(ob);
+          });
+        }
+        body.appendChild(moveRow);
+      }
+
+      // 메모
+      const ta=document.createElement('textarea');
+      ta.style.cssText=`width:100%;font-size:12px;padding:6px 8px;border:${_trackEditMode?'0.5px solid var(--bd2)':'none'};border-radius:6px;background:${_trackEditMode?'var(--bg2)':'transparent'};color:var(--ink);font-family:inherit;resize:none;min-height:60px;box-sizing:border-box;line-height:1.6;`;
+      ta.placeholder='메모...';ta.value=node.memo||'';
+      if(!_trackEditMode)ta.readOnly=true;
+      ta.oninput=e=>{node.memo=e.target.value;sv();};
+      // textarea 높이 자동 (렌더 후 일괄 설정 → 정확한 실측 위해)
+      ta.style.height='auto';
+      taEls.push(ta);
+      body.appendChild(ta);
+
+      // 링크
+      if(_trackEditMode){
+        const li=document.createElement('input');
+        li.style.cssText='width:100%;font-size:10px;padding:4px 6px;border:0.5px solid var(--bd2);border-radius:4px;margin-top:6px;background:var(--bg2);color:var(--ink);font-family:inherit;box-sizing:border-box;';
+        li.placeholder='링크 추가 (엔터)';
+        li.onkeydown=e=>{if(e.key==='Enter'){const u=li.value.trim();if(u){if(!node.links)node.links=[];node.links.push(u);li.value='';sv();renderTrackTree();}}};
+        body.appendChild(li);
+      }
+      (node.links||[]).forEach((link,i)=>{
+        const lr=document.createElement('div');lr.style.cssText='display:flex;align-items:center;gap:3px;margin-top:3px;';
+        const a=document.createElement('a');a.href=link;a.target='_blank';
+        a.style.cssText='flex:1;font-size:10px;color:#5c8db8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+        a.textContent=link;lr.appendChild(a);
+        if(_trackEditMode){
+          const dx=document.createElement('span');dx.style.cssText='cursor:pointer;color:var(--ink3);font-size:12px;flex-shrink:0;';
+          dx.textContent='×';dx.onclick=e=>{e.stopPropagation();node.links.splice(i,1);sv();renderTrackTree();};lr.appendChild(dx);
+        }
+        body.appendChild(lr);
+      });
+      // 오늘의 동그라미 선택 (이 도형에 붙이기)
+      if(_trackEditMode){
+        if(!node.circles)node.circles=[];
+        const cs=document.createElement('div');cs.style.cssText='margin-top:10px;padding-top:8px;border-top:0.5px solid var(--bd);';
+        const cl=document.createElement('div');cl.style.cssText='font-size:10px;color:var(--ink3);margin-bottom:5px;';cl.textContent='오늘의 동그라미 (눌러서 이 도형 옆에 붙이기)';
+        cs.appendChild(cl);
+        const cwrap=document.createElement('div');cwrap.style.cssText='display:flex;flex-wrap:wrap;gap:5px;';
+        const todays=(GT()||[]).filter(isShipped);
+        if(!todays.length){const e=document.createElement('div');e.style.cssText='font-size:10px;color:var(--ink3);font-style:italic;';e.textContent='오늘 내보낸 동그라미가 없어';cwrap.appendChild(e);}
+        todays.forEach(h=>{
+          const on=node.circles.some(c=>c.date===TK()&&c.id===h.id);
+          const chip=document.createElement('button');
+          chip.style.cssText='display:flex;align-items:center;gap:5px;font-size:10px;padding:3px 8px;border-radius:99px;border:1.5px solid '+(on?'#5c4f47':'var(--bd2)')+';background:'+(on?'#f2ede7':'transparent')+';cursor:pointer;font-family:inherit;color:var(--ink);max-width:150px;';
+          const d=document.createElement('span');d.style.cssText='width:10px;height:10px;border-radius:50%;background:'+SHIP_COLORS[h.ship]+';flex-shrink:0;';
+          const tx=document.createElement('span');tx.style.cssText='overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';tx.textContent=h.note||h.proj||'(이름없음)';
+          chip.appendChild(d);chip.appendChild(tx);
+          if(on){const ck=document.createElement('span');ck.textContent='✓';ck.style.cssText='color:#5c4f47;flex-shrink:0;font-size:9px;';chip.appendChild(ck);}
+          chip.onclick=e=>{e.stopPropagation();
+            if(on)node.circles=node.circles.filter(c=>!(c.date===TK()&&c.id===h.id));
+            else node.circles.push({date:TK(),id:h.id});
+            sv();renderTrackTree();};
+          cwrap.appendChild(chip);
+        });
+        cs.appendChild(cwrap);body.appendChild(cs);
+      }
+      box.appendChild(body);
+    }
+
+    // ===== 박스 위: 캡션(작은 글씨) + 위버튼 — 박스 상단에 바닥정렬, 위로 쌓임. 박스 위치엔 영향 없음 =====
+    const above=document.createElement('div');
+    above.style.cssText='position:absolute;bottom:100%;left:0;width:100%;display:flex;flex-direction:column;align-items:center;gap:0;pointer-events:none;';
+
+    const subEl=document.createElement('div');
+    if(node.sublabel){
+      subEl.style.cssText='pointer-events:auto;max-width:'+boxW+'px;font-size:10px;color:var(--ink3);margin-bottom:9px;text-align:center;white-space:normal;word-break:break-all;line-height:1.4;cursor:text;padding:0 6px;box-sizing:border-box;';
+      subEl.textContent=node.sublabel;
+      if(_trackEditMode){
+        subEl.addEventListener('dblclick',e=>{
+          e.stopPropagation();
+          subEl.contentEditable='true';subEl.style.userSelect='text';subEl.focus();
+          const r=document.createRange();r.selectNodeContents(subEl);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+          const done=()=>{subEl.contentEditable='false';subEl.style.userSelect='none';node.sublabel=subEl.textContent.trim();sv();renderTrackTree();};
+          subEl.addEventListener('blur',done,{once:true});
+        });
+      }
+      above.appendChild(subEl);
+    } else if(_trackEditMode){
+      subEl.style.cssText='pointer-events:auto;font-size:10px;color:var(--bd2);margin-bottom:9px;text-align:center;white-space:nowrap;cursor:text;padding:0 6px;';
+      subEl.textContent='＋ 설명';
+      subEl.addEventListener('dblclick',e=>{
+        e.stopPropagation();
+        subEl.contentEditable='true';subEl.style.color='var(--ink3)';subEl.textContent='';subEl.focus();
+        const done=()=>{subEl.contentEditable='false';node.sublabel=subEl.textContent.trim();sv();renderTrackTree();};
+        subEl.addEventListener('blur',done,{once:true});
+      });
+      above.appendChild(subEl);
+    }
+    if(_trackEditMode){
+      const upBtn=document.createElement('button');
+      upBtn.style.cssText='pointer-events:auto;width:18px;height:14px;border-radius:4px 4px 0 0;border:1.5px solid var(--bd2);border-bottom:none;background:var(--bg);cursor:pointer;font-size:9px;color:var(--ink3);display:flex;align-items:center;justify-content:center;padding:0;line-height:1;';
+      upBtn.textContent='↑';upBtn.title='이 도형 위에 끼워넣기';
+      upBtn.onclick=e=>{e.stopPropagation();addTrackAbove(node.id);};
+      above.appendChild(upBtn);
+    }
+    wrap.appendChild(above);
+
+    // 박스 (flow 첫 요소 → 박스 상단 = wrap 상단 = pos.y 로 고정)
+    wrap.appendChild(box);
+
+    // 아래 자식추가 버튼
+    if(_trackEditMode){
+      const downBtn=document.createElement('button');
+      downBtn.style.cssText='width:18px;height:14px;border-radius:0 0 4px 4px;border:1.5px solid var(--bd2);border-top:none;background:var(--bg);cursor:pointer;font-size:9px;color:var(--ink3);display:block;margin:0 auto;padding:0;line-height:1;';
+      downBtn.textContent='↓';downBtn.title='아래에 자식 추가';
+      downBtn.onclick=e=>{e.stopPropagation();addTrackChildNode(node.id);};
+      wrap.appendChild(downBtn);
+    }
+
+    boxEls[node.id]=box;
+    wrapEls[node.id]=wrap;
+    tree.appendChild(wrap);
+  });
+
+  // ===== 압축 영역 사각형 프레임 (배치 확정 후 그림) =====
+  function getDesc(rid){const d=S.trackNodes.filter(n=>n.parentId===rid);let out=[];d.forEach(c=>{out.push(c.id);out=out.concat(getDesc(c.id));});return out;}
+  function drawRegionFrames(){
+    tree.querySelectorAll('.region-frame').forEach(f=>f.remove());
+    const _canvasBg=((S.stickerMode||0)!==0)?'#ffffff':'#efefec';
+    S.trackNodes.forEach(node=>{
+      if(!node.region)return;
+      const p=positions[node.id];if(!p)return;
+      const col=!!node.region.collapsed;
+      const allDesc=getDesc(node.id);
+      let ids=[node.id];
+      if(!col)ids=ids.concat(allDesc.filter(id=>positions[id]));
+      let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+      ids.forEach(id=>{const q=positions[id];if(!q)return;minX=Math.min(minX,q.x);minY=Math.min(minY,q.y);maxX=Math.max(maxX,q.x+nW(id));maxY=Math.max(maxY,q.y+nodeH(id));});
+      if(minX>maxX)return;
+      const padX=16,padTop=24,padBot=20;
+      const rx=minX-padX,ry=minY-padTop,rw=(maxX-minX)+padX*2,rh=(maxY-minY)+padTop+padBot;
+      const frame=document.createElement('div');frame.className='region-frame';
+      frame.style.cssText='position:absolute;left:'+rx+'px;top:'+ry+'px;width:'+rw+'px;height:'+rh+'px;border:1.5px dashed #b8a89a;border-radius:14px;background:rgba(168,150,130,0.07);z-index:0;box-sizing:border-box;';
+      const ttl=document.createElement('div');
+      ttl.style.cssText='position:absolute;top:-11px;left:16px;background:'+_canvasBg+';padding:1px 8px;border-radius:8px;font-size:11px;font-weight:600;color:var(--ink2);cursor:pointer;white-space:nowrap;z-index:6;';
+      ttl.textContent=(col?'▸ ':'▾ ')+(node.region.title||'압축영역')+(col?(' +'+allDesc.length):'');
+      ttl.onclick=e=>{e.stopPropagation();node.region.collapsed=!col;sv();renderTrackTree();};
+      if(_trackEditMode){
+        ttl.addEventListener('dblclick',e=>{e.stopPropagation();
+          const v=prompt('압축영역 제목',node.region.title||'');if(v!=null){node.region.title=v.trim()||'압축영역';sv();renderTrackTree();}});
+      }
+      frame.appendChild(ttl);
+      const cap=document.createElement('div');
+      const hasCap=!!node.region.caption;
+      cap.style.cssText='position:absolute;bottom:-9px;left:16px;background:'+_canvasBg+';padding:0 6px;border-radius:6px;font-size:9px;color:'+(hasCap?'var(--ink3)':'var(--bd2)')+';cursor:'+(_trackEditMode?'text':'default')+';max-width:'+(rw-32)+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;z-index:6;';
+      cap.textContent=hasCap?node.region.caption:(_trackEditMode?'＋ 메모':'');
+      if(_trackEditMode){
+        cap.addEventListener('click',e=>{e.stopPropagation();
+          const v=prompt('압축영역 하단 메모',node.region.caption||'');if(v!=null){node.region.caption=v.trim();sv();renderTrackTree();}});
+      }
+      if(hasCap||_trackEditMode)frame.appendChild(cap);
+      if(_trackEditMode){
+        const rm=document.createElement('div');
+        rm.style.cssText='position:absolute;top:-11px;right:12px;background:'+_canvasBg+';padding:1px 7px;border-radius:8px;font-size:10px;color:#c07070;cursor:pointer;z-index:6;';
+        rm.textContent='영역해제';rm.title='압축영역만 풀기 (도형은 유지)';
+        rm.onclick=e=>{e.stopPropagation();delete node.region;sv();renderTrackTree();};
+        frame.appendChild(rm);
+      }
+      tree.appendChild(frame);
+    });
+  }
+
+  const todayK=TK();
+  const ns='http://www.w3.org/2000/svg';
+  const mdS=s=>s?((+s.slice(5,7))+'/'+(+s.slice(8,10))):'';
+  (S.trackGoals||[]).forEach(goal=>{
+    const p=positions[goal.nodeId];if(!p)return;
+    const node=S.trackNodes.find(n=>n.id===goal.nodeId);if(!node)return;
+    const tg=S.trackTags.find(t=>t.name===node.tag);
+    const vis=!node.tag||!tg||(tg.visible!==false);
+    const past=goal.date&&goal.date<todayK;
+    const isAct=!!goal.active;
+    const accent=isAct?'#e8645a':'var(--bd2)';
+    const txtCol=isAct?'var(--ink)':'var(--ink3)';
+    const fillCol=isAct?'#fff5f4':'var(--bg)';
+    const W=110,H=70;
+    const badge=document.createElement('div');
+    badge.style.cssText='position:absolute;left:'+(p.x-W-12)+'px;top:'+(p.y+nodeH(node.id)/2-H/2)+'px;width:'+W+'px;height:'+H+'px;cursor:pointer;z-index:5;opacity:'+(past?0.55:1)+';visibility:'+(vis?'visible':'hidden')+';filter:drop-shadow(0 1px 3px rgba(0,0,0,0.08));';
+    // 뾰족뾰족 원 (starburst)
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('width',W);svg.setAttribute('height',H);svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.style.cssText='position:absolute;inset:0;';
+    const poly=document.createElementNS(ns,'polygon');
+    const N=18,cx=W/2,cy=H/2,orx=W/2-2,ory=H/2-2,irx=orx*0.86,iry=ory*0.86;
+    let bp=[];
+    for(let i=0;i<N*2;i++){const a=Math.PI*i/N-Math.PI/2;const o=(i%2===0);const rx=o?orx:irx,ry=o?ory:iry;bp.push((cx+rx*Math.cos(a)).toFixed(1)+','+(cy+ry*Math.sin(a)).toFixed(1));}
+    poly.setAttribute('points',bp.join(' '));
+    poly.setAttribute('fill',fillCol);
+    poly.setAttribute('stroke',accent);poly.setAttribute('stroke-width','1.5');poly.setAttribute('stroke-linejoin','round');
+    svg.appendChild(poly);badge.appendChild(svg);
+    // 텍스트
+    const inner=document.createElement('div');
+    inner.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 16px;box-sizing:border-box;';
+    const t=document.createElement('div');
+    t.style.cssText='font-size:10px;font-weight:500;color:'+txtCol+';line-height:1.2;word-break:break-all;text-align:center;max-height:28px;overflow:hidden;';
+    t.textContent=(goal.active?'◉ ':'')+(goal.text||'목표');
+    const dt=document.createElement('div');
+    dt.style.cssText='font-size:8.5px;color:var(--ink3);text-align:center;margin-top:2px;';
+    dt.textContent=(goal.date||goal.start)?((mdS(goal.start)||'?')+' ~ '+(mdS(goal.date)||'?')):'기간 미정';
+    inner.appendChild(t);inner.appendChild(dt);badge.appendChild(inner);
+    badge.onclick=ev=>{ev.stopPropagation();openTrackGoalEditor(goal.id);};
+    tree.appendChild(badge);
+  });
+
+  // ===== 도형 우측: 붙인 동그라미 세로 표기 (색=라이브 ship, hover=할일명) =====
+  S.trackNodes.forEach(node=>{
+    const circles=node.circles||[];if(!circles.length)return;
+    const p=positions[node.id];if(!p)return;
+    const tg=S.trackTags.find(t=>t.name===node.tag);
+    const vis=!node.tag||!tg||(tg.visible!==false);
+    const D=7,gap=4,colH=circles.length*D+(circles.length-1)*gap;
+    const col=document.createElement('div');
+    col.style.cssText='position:absolute;left:'+(p.x+nW(node.id)+8)+'px;top:'+(p.y+nodeH(node.id)/2-colH/2)+'px;display:flex;flex-direction:column;gap:'+gap+'px;z-index:5;visibility:'+(vis?'visible':'hidden')+';';
+    circles.forEach(c=>{
+      const arr=S.tallies[c.date]||[];const live=arr.find(h=>h&&h.id===c.id);
+      const ship=live?live.ship:c.ship;const note=live?(live.note||live.proj):(c.note||'');
+      const canToggle=(ship==='yellow'||ship==='orange');
+      const dot=document.createElement('div');
+      dot.style.cssText='width:'+D+'px;height:'+D+'px;border-radius:50%;background:'+(SHIP_COLORS[ship]||'var(--bd2)')+';cursor:'+(canToggle?'pointer':'default')+';flex-shrink:0;';
+      dot.title=(note||'(이름없음)')+(canToggle?'\n(클릭: 노랑↔주황)':'');
+      if(canToggle&&live)dot.onclick=e=>{e.stopPropagation();live.ship=live.ship==='yellow'?'orange':'yellow';sv();renderTrackTree();};
+      col.appendChild(dot);
+    });
+    tree.appendChild(col);
+  });
+
+  // ===== 연결선: 실제 박스 위치를 측정해서 그림 =====
+  function boxGeo(nid,treeRect){
+    const el=boxEls[nid];if(!el)return null;
+    const r=el.getBoundingClientRect();
+    return {cx:r.left-treeRect.left+r.width/2, top:r.top-treeRect.top, bottom:r.top-treeRect.top+r.height};
+  }
+  function tagVis(node){const tg=S.trackTags.find(t=>t.name===node.tag);return !node.tag||!tg||tg.visible!==false;}
+  function drawTrackEdges(){
+    while(svg.firstChild)svg.removeChild(svg.firstChild);
+    const treeRect=tree.getBoundingClientRect();
+    // 부모-자식 구조선 (화살표)
+    S.trackNodes.forEach(node=>{
+      if(!node.parentId)return;
+      const parent=S.trackNodes.find(n=>n.id===node.parentId);
+      if(!parent||!tagVis(node)||!tagVis(parent))return;
+      const fb=boxGeo(node.parentId,treeRect),tb=boxGeo(node.id,treeRect);if(!fb||!tb)return;
+      const fx=fb.cx,fy=fb.bottom,tx=tb.cx,ty=tb.top,my=fy+Math.min(16,(ty-fy)/2);
+      const st=node.edgeStyle||'normal';
+      const dash=(st==='dashed'||st==='dashed-dim')?'4 2':'none';
+      const thick=(st==='thick');
+      const col=thick?'var(--ink)':'var(--bd2)';
+      const sw=thick?'3':'1.5';
+      const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',`M${fx} ${fy} V${my} H${tx} V${ty}`);
+      p.setAttribute('stroke',col);p.setAttribute('stroke-width',sw);p.setAttribute('fill','none');p.setAttribute('stroke-dasharray',dash);
+      if(_trackEditMode){p.style.pointerEvents='all';p.style.cursor='pointer';p.addEventListener('click',e=>{e.stopPropagation();cycleNodeEdge(node.id);});}
+      const arr=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      arr.setAttribute('points',`${tx-4},${ty-8} ${tx+4},${ty-8} ${tx},${ty}`);arr.setAttribute('fill',col);
+      svg.appendChild(p);svg.appendChild(arr);
+    });
+    // 자유 연결선
+    function anchorId(id){
+      if(boxEls[id])return id;
+      let c=S.trackNodes.find(n=>n.id===id);
+      while(c){if(c.region&&boxEls[c.id])return c.id;c=S.trackNodes.find(n=>n.id===c.parentId);}
+      return null;
+    }
+    (S.trackEdges||[]).forEach(edge=>{
+      const fromN=S.trackNodes.find(n=>n.id===edge.from),toN=S.trackNodes.find(n=>n.id===edge.to);
+      if(!fromN||!toN||!tagVis(fromN)||!tagVis(toN))return;
+      const fId=anchorId(edge.from),tId=anchorId(edge.to);
+      if(!fId||!tId||fId===tId)return;
+      const fb=boxGeo(fId,treeRect),tb=boxGeo(tId,treeRect);if(!fb||!tb)return;
+      const fx=fb.cx,fy=fb.bottom,tx=tb.cx,ty=tb.top,my=fy+Math.min(16,(ty-fy)/2);
+      const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',`M${fx} ${fy} V${my} H${tx} V${ty}`);
+      p.setAttribute('stroke','#c4b8e8');p.setAttribute('stroke-width','1.5');p.setAttribute('fill','none');
+      p.style.pointerEvents='all';p.style.cursor='pointer';
+      p.addEventListener('click',e=>{e.stopPropagation();openTrackEdgeEditor(edge.id);});
+      svg.appendChild(p);
+      if(edge.label){
+        const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+        text.setAttribute('x',(fx+tx)/2+4);text.setAttribute('y',my-4);
+        text.setAttribute('font-size','10');text.setAttribute('fill','var(--ink3)');
+        text.setAttribute('text-anchor','middle');text.textContent=edge.label;
+        svg.appendChild(text);
+      }
+    });
+  }
+  tree.insertBefore(svg,tree.firstChild);
+
+  // ===== 실측 기반 2차 배치: 추정 대신 진짜 박스 높이로 자리 재계산 =====
+  function relayoutWithRealHeights(){
+    // 1) 열린 메모 textarea 높이 확정
+    taEls.forEach(ta=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+    // 2) 박스 실제 높이 측정
+    let changed=false;
+    S.trackNodes.forEach(n=>{
+      const el=boxEls[n.id];if(!el)return;
+      const h=el.getBoundingClientRect().height;
+      if(h>0 && Math.abs((realH[n.id]??-1)-h)>1){realH[n.id]=h;changed=true;}
+    });
+    if(!changed)return;
+    // 3) 실제 높이로 다시 배치
+    const sz=doLayout();
+    tree.style.width=sz.maxX+'px';tree.style.height=sz.maxY+'px';
+    svg.style.width=sz.maxX+'px';svg.style.height=sz.maxY+'px';
+    // 4) wrap 위치 갱신
+    S.trackNodes.forEach(n=>{const w=wrapEls[n.id],p=positions[n.id];if(w&&p){w.style.left=p.x+'px';w.style.top=p.y+'px';}});
+  }
+  relayoutWithRealHeights();
+  drawTrackEdges();
+  drawRegionFrames();
+  // 폰트/리플로우 안정화 후 한 번 더
+  setTimeout(()=>{relayoutWithRealHeights();drawTrackEdges();drawRegionFrames();},0);
+}
+
+function addTrackRootAbove(targetRootId){
+  if(!S.trackNodes)S.trackNodes=[];
+  const id=Date.now();
+  const newNode={id,label:'',shape:'rounded',tag:'',memo:'',stickers:[],links:[],parentId:null};
+  if(targetRootId){
+    // 특정 루트만 자식으로
+    S.trackNodes.find(n=>n.id===targetRootId&&!n.parentId)&&(S.trackNodes.find(n=>n.id===targetRootId).parentId=id);
+  } else {
+    // 모든 루트를 자식으로
+    S.trackNodes.filter(n=>!n.parentId).forEach(n=>n.parentId=id);
+  }
+  S.trackNodes.unshift(newNode);
+  _trackOpenIds.clear();_trackOpenIds.add(id);
+  sv();renderTrackTree();
+  setTimeout(()=>{
+    const lbls=document.querySelectorAll('#track-tree div[style*="font-weight:500"]');
+    if(lbls[0]){
+      const l=lbls[0];l.contentEditable='true';l.style.background='rgba(0,0,0,0.03)';l.focus();
+      const r=document.createRange();r.selectNodeContents(l);window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+      const save=()=>{l.contentEditable='false';l.style.background='';newNode.label=l.textContent.trim()||'새 도형';sv();};
+      l.addEventListener('blur',save,{once:true});
+      l.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();l.blur();}},{once:true});
+    }
+  },80);
+}
+function addTrackNode(){
+  if(!S.trackNodes)S.trackNodes=[];
+  const id=Date.now();
+  S.trackNodes.push({id,label:'',shape:'rounded',tag:'',memo:'',stickers:[],links:[],parentId:null});
+  _trackOpenIds.clear();_trackOpenIds.add(id);
+  sv();renderTrackTree();
+  // 이름 입력 활성화
+  setTimeout(()=>{
+    const lbls=document.querySelectorAll('#track-tree div[style*="font-weight:500"]');
+    lbls.forEach(lbl=>{
+      if(lbl.textContent==='새 도형'||lbl.textContent===''){
+        lbl.contentEditable='true';lbl.style.userSelect='text';lbl.focus();
+        const range=document.createRange();range.selectNodeContents(lbl);
+        window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+        const done=()=>{
+          lbl.contentEditable='false';lbl.style.userSelect='none';
+          const node=S.trackNodes.find(n=>n.id===id);
+          if(node)node.label=lbl.textContent.trim()||'새 도형';
+          sv();renderTrackTree();
+        };
+        lbl.addEventListener('blur',done,{once:true});
+        lbl.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();lbl.blur();}},{once:true});
+      }
+    });
+  },80);
+}
+
+function addTrackAbove(targetId){
+  if(!S.trackNodes)S.trackNodes=[];
+  const target=S.trackNodes.find(n=>n.id===targetId);if(!target)return;
+  const id=Date.now();
+  // 새 노드가 target의 기존 부모를 물려받고, target은 새 노드의 자식이 됨
+  const newNode={id,label:'',shape:'rounded',tag:'',memo:'',stickers:[],links:[],parentId:target.parentId};
+  target.parentId=id;
+  S.trackNodes.push(newNode);
+  _trackOpenIds.clear();_trackOpenIds.add(id);
+  sv();renderTrackTree();
+  setTimeout(()=>{
+    const lbls=document.querySelectorAll('#track-tree div[style*="font-weight:500"]');
+    lbls.forEach(lbl=>{
+      if(lbl.textContent===''||lbl.textContent==='새 도형'){
+        lbl.contentEditable='true';lbl.style.userSelect='text';lbl.focus();
+        const range=document.createRange();range.selectNodeContents(lbl);
+        window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+        const done=()=>{lbl.contentEditable='false';lbl.style.userSelect='none';const n=S.trackNodes.find(x=>x.id===id);if(n)n.label=lbl.textContent.trim()||'새 도형';sv();renderTrackTree();};
+        lbl.addEventListener('blur',done,{once:true});
+        lbl.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();lbl.blur();}},{once:true});
+      }
+    });
+  },80);
+}
+// 형제 순서 이동 (좌우 위치 조정)
+function moveTrackSibling(id,dir){
+  const node=S.trackNodes.find(n=>n.id===id);if(!node)return;
+  const sibs=S.trackNodes.filter(n=>n.parentId===node.parentId);
+  const idx=sibs.indexOf(node);
+  const swap=sibs[idx+dir];if(!swap)return;
+  const i1=S.trackNodes.indexOf(node), i2=S.trackNodes.indexOf(swap);
+  S.trackNodes[i1]=swap;S.trackNodes[i2]=node;
+  sv();renderTrackTree();
+}
+
+function addTrackChildNode(parentId){
+  if(!S.trackNodes)S.trackNodes=[];
+  const id=Date.now();
+  S.trackNodes.push({id,label:'',shape:'rounded',tag:'',memo:'',stickers:[],links:[],parentId});
+  _trackOpenIds.clear();_trackOpenIds.add(id);
+  sv();renderTrackTree();
+  setTimeout(()=>{
+    const lbls=document.querySelectorAll('#track-tree div[style*="font-weight:500"]');
+    lbls.forEach(lbl=>{
+      if(lbl.textContent===''||lbl.textContent==='새 도형'){
+        lbl.contentEditable='true';lbl.style.userSelect='text';lbl.focus();
+        const range=document.createRange();range.selectNodeContents(lbl);
+        window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+        const done=()=>{
+          lbl.contentEditable='false';lbl.style.userSelect='none';
+          const node=S.trackNodes.find(n=>n.id===id);
+          if(node)node.label=lbl.textContent.trim()||'새 도형';
+          sv();renderTrackTree();
+        };
+        lbl.addEventListener('blur',done,{once:true});
+        lbl.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();lbl.blur();}},{once:true});
+      }
+    });
+  },80);
+}
+
+function deleteTrackNode(){
+  if(!_trackSelectedId)return;
+  S.trackNodes=S.trackNodes.filter(n=>n.id!==_trackSelectedId&&n.parentId!==_trackSelectedId);
+  S.trackEdges=(S.trackEdges||[]).filter(e=>e.from!==_trackSelectedId&&e.to!==_trackSelectedId);
+  _trackOpenIds.clear();sv();renderTrackTree();
+}
+
+function toggleTrackConnect(){
+  const cb=document.getElementById('track-connect-btn');
+  if(_trackConnectFrom){
+    _trackConnectFrom=null;
+    if(cb){cb.style.background='transparent';cb.style.color='var(--ink3)';}
+    renderTrackTree();
+  } else {
+    _trackConnectFrom='__waiting__';
+    if(cb){cb.style.background='#5c4f47';cb.style.color='#fff';}
+  }
+}
+
+// ===== 추적 안 홈 기능 패널 =====
+const TRACK_PANEL_WIDGETS=[
+  {key:'ship',label:'세상에 내보이기',id:'ship-status-card'},
+  {key:'todos',label:'할일',id:'hw-todos'},
+  {key:'tally',label:'탈리',id:'hw-tally'},
+  {key:'timebar',label:'타임바',id:null},
+  {key:'goals',label:'목표·한마디',id:'hw-goals'},
+  {key:'energy',label:'에너지',id:'hw-energy'},
+  {key:'wrapup',label:'하루마무리',id:'hw-wrapup'}
+];
+const _trackPH={};
+function _ensurePanelState(){if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true}};if(!S.trackPanel.w)S.trackPanel.w={};}
+function moveWidgetToPanel(id){
+  const w=document.getElementById(id);if(!w)return;
+  const host=document.getElementById('track-home-widgets');if(!host)return;
+  if(!_trackPH[id]){const ph=document.createElement('div');ph.style.display='none';_trackPH[id]=ph;}
+  const ph=_trackPH[id];
+  if(w.parentNode!==host){ if(w.parentNode&&!ph.parentNode)w.parentNode.insertBefore(ph,w); host.appendChild(w); w.style.marginBottom='12px'; }
+}
+function moveWidgetToHome(id){
+  const w=document.getElementById(id);if(!w)return;
+  const ph=_trackPH[id];
+  if(ph&&ph.parentNode){ ph.parentNode.insertBefore(w,ph); ph.parentNode.removeChild(ph); w.style.marginBottom=''; }
+}
+function trackPanelAllHome(){ TRACK_PANEL_WIDGETS.forEach(x=>{if(x.id)moveWidgetToHome(x.id);}); }
+function syncTrackPanel(){
+  _ensurePanelState();
+  const panel=document.getElementById('track-home-panel');
+  const onTrack=document.getElementById('page-track')&&document.getElementById('page-track').classList.contains('on');
+  const show=onTrack&&S.trackPanel.open;
+  if(panel)panel.style.display=show?'flex':'none';
+  if(!show){ trackPanelAllHome();
+    // 타임바: 홈에서만 (track 떠날 때 처리됨)
+    return;
+  }
+  TRACK_PANEL_WIDGETS.forEach(x=>{
+    if(!x.id)return;
+    if(S.trackPanel.w[x.key])moveWidgetToPanel(x.id); else moveWidgetToHome(x.id);
+  });
+  // 타임바 (고정 바) 표시 토글
+  const tb=document.getElementById('home-timebar-fixed');
+  if(tb)tb.style.display=S.trackPanel.w.timebar?'flex':'none';
+  if(S.trackPanel.w.timebar)renderHomeTimebar();
+  // 내용 최신화
+  try{renderShipStatus();renderTodos();renderTallies();renderElist();renderGoals();renderEnergyChecks();renderLegend&&renderLegend();}catch(e){}
+  renderTrackPanelChecks();
+}
+function renderTrackPanelChecks(){
+  const el=document.getElementById('track-panel-checks');if(!el)return;_ensurePanelState();
+  el.innerHTML='';
+  TRACK_PANEL_WIDGETS.forEach(x=>{
+    const on=!!S.trackPanel.w[x.key];
+    const b=document.createElement('button');
+    b.style.cssText='font-size:10px;padding:2px 8px;border-radius:99px;border:1px solid '+(on?'#5c4f47':'var(--bd2)')+';background:'+(on?'#5c4f47':'transparent')+';color:'+(on?'#fff':'var(--ink3)')+';cursor:pointer;font-family:inherit;';
+    b.textContent=(on?'✓ ':'')+x.label;
+    b.onclick=()=>{S.trackPanel.w[x.key]=!on;sv();syncTrackPanel();};
+    el.appendChild(b);
+  });
+}
+function toggleTrackHomePanel(){
+  _ensurePanelState();
+  S.trackPanel.open=!S.trackPanel.open;sv();
+  const btn=document.getElementById('track-homepanel-btn');
+  if(btn){btn.style.background=S.trackPanel.open?'#5c4f47':'transparent';btn.style.color=S.trackPanel.open?'#fff':'var(--ink3)';}
+  syncTrackPanel();
+}
+
+// ===== 압축 영역 =====
+function startCompress(){
+  _compressPlacing=!_compressPlacing;
+  if(_trackGoalPlacing){_trackGoalPlacing=false;const gb=document.getElementById('track-goal-btn');if(gb){gb.style.background='transparent';gb.style.color='var(--ink3)';gb.textContent='+ 목표';}}
+  if(_trackConnectFrom){_trackConnectFrom=null;const cb=document.getElementById('track-connect-btn');if(cb){cb.style.background='transparent';cb.style.color='var(--ink3)';}}
+  const b=document.getElementById('track-compress-btn');
+  if(b){b.style.background=_compressPlacing?'#5c4f47':'transparent';b.style.color=_compressPlacing?'#fff':'var(--ink3)';b.textContent=_compressPlacing?'도형 선택…':'📦 압축';}
+}
+function makeRegion(nodeId){
+  const n=S.trackNodes.find(x=>x.id===nodeId);
+  if(n)n.region={title:'압축영역',caption:'',collapsed:false};
+  _compressPlacing=false;
+  const b=document.getElementById('track-compress-btn');
+  if(b){b.style.background='transparent';b.style.color='var(--ink3)';b.textContent='📦 압축';}
+  sv();renderTrackTree();
+}
+function toggleRegion(nodeId){
+  const n=S.trackNodes.find(x=>x.id===nodeId);
+  if(n&&n.region){n.region.collapsed=!n.region.collapsed;sv();renderTrackTree();}
+}
+function removeRegion(nodeId){
+  const n=S.trackNodes.find(x=>x.id===nodeId);
+  if(n){delete n.region;sv();renderTrackTree();}
+}
+
+// ===== 스티커 모드 =====
+function _mixWhite(hex,t){
+  if(!hex)return '#ffffff';hex=(''+hex).replace('#','');
+  if(hex.length!==6)return hex;
+  const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);
+  const m=v=>Math.round(v+(255-v)*t);
+  return 'rgb('+m(r)+','+m(g)+','+m(b)+')';
+}
+function stickerModes(){
+  const c=S.stickerColors||{},n=S.stickerNames||{};
+  return [
+    {key:'base',label:'기본',color:null},
+    {key:'concl',label:n.concl||'현재 결론',color:c.concl||'#f6d98f'},
+    {key:'c1',label:n.c1||'이름 지정',color:c.c1||'#bfe0c8'},
+    {key:'c2',label:n.c2||'이름 지정',color:c.c2||'#cdc4ec'}
+  ];
+}
+function renderStickerBtn(){
+  const lab=document.getElementById('track-sticker-label');
+  const ctrl=document.getElementById('track-sticker-ctrl');
+  if(!lab||!ctrl)return;
+  const m=stickerModes()[S.stickerMode||0];
+  const on=(S.stickerMode||0)!==0;
+  lab.textContent='🏷 '+m.label;
+  lab.style.color=on?'#3a3230':'var(--ink3)';
+  ctrl.style.background=on?(m.color||'#5c4f47'):'transparent';
+  ctrl.style.borderColor=on?(m.color||'#5c4f47'):'var(--bd2)';
+  const editable=(m.key!=='base');
+  lab.title=editable?'더블클릭: 이 스티커 층 색·이름 설정':'';
+  lab.ondblclick=editable?(()=>openStickerEditor(m.key)):null;
+}
+function stickerStep(d){
+  if(S.stickerMode==null)S.stickerMode=0;
+  const len=stickerModes().length;
+  S.stickerMode=(S.stickerMode+d+len)%len;
+  sv();renderStickerBtn();renderTrackTree();
+}
+function cycleStickerMode(){stickerStep(1);}
+let _editStickerKey=null;
+function openStickerEditor(key){
+  _editStickerKey=key;
+  const m=stickerModes().find(x=>x.key===key);if(!m)return;
+  document.getElementById('sticker-edit-name').value=m.label;
+  document.getElementById('sticker-edit-color').value=m.color||'#f6d98f';
+  document.getElementById('track-sticker-editor').style.display='flex';
+}
+function closeStickerEditor(){document.getElementById('track-sticker-editor').style.display='none';_editStickerKey=null;}
+function saveStickerEditor(){
+  if(!_editStickerKey){closeStickerEditor();return;}
+  if(!S.stickerNames)S.stickerNames={};if(!S.stickerColors)S.stickerColors={};
+  S.stickerNames[_editStickerKey]=document.getElementById('sticker-edit-name').value.trim()||'이름 지정';
+  S.stickerColors[_editStickerKey]=document.getElementById('sticker-edit-color').value;
+  sv();closeStickerEditor();renderStickerBtn();renderTrackTree();
+}
+
+// ===== 목표 (트랙) =====
+function startTrackGoal(){
+  if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+  _trackGoalPlacing=!_trackGoalPlacing;
+  if(_compressPlacing){_compressPlacing=false;const b=document.getElementById('track-compress-btn');if(b){b.style.background='transparent';b.style.color='var(--ink3)';b.textContent='📦 압축';}}
+  if(_trackConnectFrom){_trackConnectFrom=null;const cb=document.getElementById('track-connect-btn');if(cb){cb.style.background='transparent';cb.style.color='var(--ink3)';}}
+  const gb=document.getElementById('track-goal-btn');
+  if(gb){gb.style.background=_trackGoalPlacing?'#5c4f47':'transparent';gb.style.color=_trackGoalPlacing?'#fff':'var(--ink3)';gb.textContent=_trackGoalPlacing?'도형 선택…':'+ 목표';}
+}
+function attachTrackGoal(nodeId){
+  if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+  const id=Date.now();
+  S.trackGoals.push({id,nodeId,text:'',start:TK(),date:'',active:false});
+  _trackGoalPlacing=false;
+  const gb=document.getElementById('track-goal-btn');
+  if(gb){gb.style.background='transparent';gb.style.color='var(--ink3)';gb.textContent='+ 목표';}
+  sv();renderTrackTree();
+  openTrackGoalEditor(id);
+}
+function openTrackGoalEditor(id){
+  _editGoalId=id;
+  const g=(S.trackGoals||[]).find(x=>x.id===id);if(!g)return;
+  document.getElementById('goal-edit-text').value=g.text||'';
+  document.getElementById('goal-edit-start').value=g.start||'';
+  document.getElementById('goal-edit-date').value=g.date||'';
+  document.getElementById('goal-edit-active').checked=!!g.active;
+  document.getElementById('track-goal-editor').style.display='flex';
+}
+function closeTrackGoalEditor(){document.getElementById('track-goal-editor').style.display='none';_editGoalId=null;}
+function saveTrackGoalEditor(){
+  const g=(S.trackGoals||[]).find(x=>x.id===_editGoalId);if(!g){closeTrackGoalEditor();return;}
+  g.text=document.getElementById('goal-edit-text').value.trim();
+  g.start=document.getElementById('goal-edit-start').value;
+  g.date=document.getElementById('goal-edit-date').value;
+  const act=document.getElementById('goal-edit-active').checked;
+  if(act){S.trackGoals.forEach(x=>x.active=false);g.active=true;}
+  else g.active=false;
+  sv();closeTrackGoalEditor();renderTrackTree();renderShipStatus();
+}
+function deleteTrackGoal(){
+  S.trackGoals=(S.trackGoals||[]).filter(x=>x.id!==_editGoalId);
+  sv();closeTrackGoalEditor();renderTrackTree();renderShipStatus();
+}
+
+let _editEdgeId=null;
+function cycleNodeEdge(nodeId){
+  const n=S.trackNodes.find(x=>x.id===nodeId);if(!n)return;
+  const order=['normal','dashed-dim','thick'];
+  let i=order.indexOf(n.edgeStyle||'normal');if(i<0)i=0;
+  n.edgeStyle=order[(i+1)%order.length];
+  sv();renderTrackTree();
+}
+function openTrackEdgeEditor(id){
+  _editEdgeId=id;
+  const edge=(S.trackEdges||[]).find(e=>e.id===id);
+  if(!edge)return;
+  document.getElementById('edge-edit-label').value=edge.label||'';
+  document.getElementById('edge-edit-dashed').checked=!!edge.dashed;
+  document.getElementById('track-edge-editor').style.display='flex';
+}
+function closeTrackEdgeEditor(){
+  document.getElementById('track-edge-editor').style.display='none';
+  _editEdgeId=null;
+}
+function saveTrackEdgeEditor(){
+  const edge=(S.trackEdges||[]).find(e=>e.id===_editEdgeId);
+  if(!edge)return;
+  edge.label=document.getElementById('edge-edit-label').value.trim();
+  edge.dashed=document.getElementById('edge-edit-dashed').checked;
+  sv();closeTrackEdgeEditor();renderTrackTree();
+}
+function deleteTrackEdge(){
+  S.trackEdges=(S.trackEdges||[]).filter(e=>e.id!==_editEdgeId);
+  sv();closeTrackEdgeEditor();renderTrackTree();
+}
+let _editTagIdx=null;
+function openTrackTagEditor(i){
+  _editTagIdx=i;
+  const tag=S.trackTags[i];
+  document.getElementById('tag-edit-name').value=tag.name;
+  document.getElementById('tag-edit-color').value=tag.color;
+  document.getElementById('track-tag-editor').style.display='flex';
+}
+function closeTrackTagEditor(){
+  document.getElementById('track-tag-editor').style.display='none';
+  _editTagIdx=null;
+}
+function saveTrackTagEditor(){
+  if(_editTagIdx===null)return;
+  S.trackTags[_editTagIdx].name=document.getElementById('tag-edit-name').value.trim()||S.trackTags[_editTagIdx].name;
+  S.trackTags[_editTagIdx].color=document.getElementById('tag-edit-color').value;
+  sv();closeTrackTagEditor();renderTrackFilterBtns();renderTrackTree();
+}
+function renderTrackTagSettings(){
+  const el=document.getElementById('track-tag-settings');
+  if(!el)return;
+  if(!S.trackTags)S.trackTags=[];
+  el.innerHTML='';
+  S.trackTags.forEach((tag,i)=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:6px;';
+    const nameInp=document.createElement('input');
+    nameInp.style.cssText='flex:1;font-size:12px;padding:5px 8px;border:0.5px solid var(--bd2);border-radius:var(--r);font-family:inherit;background:var(--bg);color:var(--ink);';
+    nameInp.value=tag.name;nameInp.oninput=e=>{tag.name=e.target.value;sv();};
+    const colorInp=document.createElement('input');
+    colorInp.type='color';colorInp.value=tag.color;
+    colorInp.style.cssText='width:32px;height:32px;border:none;border-radius:4px;padding:2px;cursor:pointer;';
+    colorInp.oninput=e=>{tag.color=e.target.value;sv();};
+    const delBtn=document.createElement('button');
+    delBtn.style.cssText='font-size:11px;padding:3px 8px;border-radius:var(--r);border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--ink3);';
+    delBtn.textContent='삭제';delBtn.onclick=()=>{S.trackTags.splice(i,1);sv();renderTrackTagSettings();renderTrackFilterBtns();renderTrackTree();};
+    row.appendChild(nameInp);row.appendChild(colorInp);row.appendChild(delBtn);
+    el.appendChild(row);
+  });
+}
+function addTrackTag(){
+  if(!S.trackTags)S.trackTags=[];
+  S.trackTags.push({name:'새 태그',color:'#d4c8be',visible:true});
+  sv();renderTrackTagSettings();renderTrackFilterBtns();
+}
 function stampSleep(type){
   const k=TK();
   if(!S.sleep)S.sleep={};
@@ -2287,6 +3659,14 @@ if(!S.expNotes)S.expNotes={};
 if(!S.expOutline)S.expOutline='';
 if(!S.gogoIdeas)S.gogoIdeas='';
 if(!S.expFreeMemo)S.expFreeMemo='';
+if(!S.trackNodes)S.trackNodes=[];
+if(!S.trackEdges)S.trackEdges=[];
+if(!S.trackGoals)S.trackGoals=[];
+if(S.stickerMode==null)S.stickerMode=0;
+if(!S.stickerNames)S.stickerNames={concl:"현재 결론",c1:"이름 지정",c2:"이름 지정"};
+if(!S.stickerColors)S.stickerColors={concl:"#f6d98f",c1:"#bfe0c8",c2:"#cdc4ec"};
+if(!S.trackPanel)S.trackPanel={open:false,w:{ship:true,todos:true,tally:true,goals:false,energy:false,wrapup:false,timebar:false}};
+if(!S.trackTags)S.trackTags=[{name:'사업',color:'#f0a8a8'},{name:'실험',color:'#8ed4b0'},{name:'학습',color:'#a8c8f0'},{name:'루틴',color:'#f0e8a8'}];
 if(!S.soulQuestions)S.soulQuestions=[];
 if(!S.soulEntries)S.soulEntries={};
 if(!S.timebar)S.timebar={
@@ -2327,6 +3707,7 @@ renderDateStreak();
 renderGoals();
 renderLegend();
 renderTallies();
+renderShipStatus();
 renderTodos();
 renderElist();
 </script>
